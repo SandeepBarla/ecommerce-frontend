@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+
+:root {
+  font-family: 'Playfair Display', serif;
+  background-color: #FAF3E0; /* Elegant beige */
+  color: #4A2C2A;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure full-width layout */
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar Styling */
+nav {
+  width: 100%;
+  padding: 10px 20px;
+  background-color: #8B0000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  font-weight: 600;
+  color: #8B0000;
+  transition: color 0.3s ease-in-out;
+}
+
+a:hover {
+  color: #D2042D;
+}
+
+/* Headings */
+h1, h2, h3 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Buttons */
+button {
+  border-radius: 8px;
+  border: 2px solid #8B0000;
+  padding: 0.7em 1.5em;
+  font-size: 1.1em;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  background-color: #8B0000;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: #D2042D;
+  border-color: #D2042D;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 2em;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8em;
+  }
+
+  button {
+    font-size: 1em;
+    padding: 0.5em 1em;
+  }
+}
