@@ -1,7 +1,14 @@
-import { useEffect, useState, useContext } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Typography, TextField, Button, Box, Alert } from "@mui/material";
-import { getCart, placeOrder, clearCart, CartItem } from "../api";
+import { CartItem, clearCart, getCart, placeOrder } from "../api";
 import { AuthContext } from "../context/AuthContext";
 
 const Checkout = () => {
@@ -41,7 +48,7 @@ const Checkout = () => {
 
     const productsArray = cartItems.map((item) => ({
       productId: item.productId,
-      quantity: item.quantity
+      quantity: item.quantity,
     }));
 
     if (productsArray.length === 0) {
@@ -49,21 +56,24 @@ const Checkout = () => {
       return;
     }
 
-    const totalAmount = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    const totalAmount = cartItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
     if (totalAmount <= 0) {
       setError("Total amount must be greater than 0.");
       return;
     }
 
     const orderData = {
-      products: JSON.stringify(productsArray),
+      products: productsArray,
       totalAmount,
       shippingAddress: shippingAddress.trim(),
     };
 
     try {
       await placeOrder(orderData);
-      await clearCart();  // ✅ Clear the cart after placing the order
+      await clearCart(); // ✅ Clear the cart after placing the order
       setSuccessMessage("Order placed successfully! Redirecting...");
       setTimeout(() => navigate("/orders"), 3000);
     } catch (error) {
@@ -82,14 +92,20 @@ const Checkout = () => {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 5 }}>
-      <Typography variant="h4" fontWeight="bold" sx={{ textAlign: "center", mb: 3 }}>
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        sx={{ textAlign: "center", mb: 3 }}
+      >
         Checkout
       </Typography>
 
       {successMessage && <Alert severity="success">{successMessage}</Alert>}
       {error && <Alert severity="error">{error}</Alert>}
 
-      <Typography variant="h6" sx={{ mt: 2 }}>Shipping Address:</Typography>
+      <Typography variant="h6" sx={{ mt: 2 }}>
+        Shipping Address:
+      </Typography>
       <TextField
         fullWidth
         placeholder="Enter your shipping address"
@@ -99,17 +115,36 @@ const Checkout = () => {
         required
       />
 
-      <Typography variant="h6" sx={{ mt: 3 }}>Order Summary:</Typography>
+      <Typography variant="h6" sx={{ mt: 3 }}>
+        Order Summary:
+      </Typography>
       {cartItems.map((item) => (
-        <Box key={item.productId} sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+        <Box
+          key={item.productId}
+          sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
+        >
           <Typography>{item.productName}</Typography>
-          <Typography>₹{item.price} x {item.quantity}</Typography>
+          <Typography>
+            ₹{item.price} x {item.quantity}
+          </Typography>
         </Box>
       ))}
 
-      <Typography variant="h6" sx={{ mt: 2 }}>Total: ₹{cartItems.reduce((total, item) => total + item.price * item.quantity, 0)}</Typography>
+      <Typography variant="h6" sx={{ mt: 2 }}>
+        Total: ₹
+        {cartItems.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        )}
+      </Typography>
 
-      <Button fullWidth variant="contained" color="primary" sx={{ mt: 3 }} onClick={handlePlaceOrder}>
+      <Button
+        fullWidth
+        variant="contained"
+        color="primary"
+        sx={{ mt: 3 }}
+        onClick={handlePlaceOrder}
+      >
         Place Order
       </Button>
     </Container>

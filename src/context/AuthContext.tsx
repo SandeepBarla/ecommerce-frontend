@@ -1,9 +1,11 @@
-import { createContext, useState, ReactNode, useEffect } from "react";
-import { setAuthToken, api } from "../api";
+import { createContext, ReactNode, useEffect, useState } from "react";
+import { api, setAuthToken } from "../api";
 
-interface User {
+export interface User {
+  id: number;
   fullName: string;
   email: string;
+  role: string;
 }
 
 interface AuthContextType {
@@ -13,10 +15,14 @@ interface AuthContextType {
   logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token")
+  );
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
