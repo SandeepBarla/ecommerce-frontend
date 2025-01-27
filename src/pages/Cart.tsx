@@ -1,15 +1,16 @@
 import { useEffect, useState, useContext } from "react";
-import { getCart, upsertCartItem, CartItem } from "../api";
+import { useNavigate } from "react-router-dom";
+import { getCart, upsertCartItem, clearCart, CartItem } from "../api";
 import { AuthContext } from "../context/AuthContext";
-import { Container, Typography, Button, List, ListItem, ListItemText, Box, IconButton, Alert } from "@mui/material";
+import { Container, Typography, Button, List, ListItem, ListItemText, Box, Alert } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Link } from "react-router-dom";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const authContext = useContext(AuthContext);
-  const { token } = authContext || {}; // Handle missing context
+  const { token } = authContext || {};
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (token) {
@@ -37,15 +38,14 @@ const Cart = () => {
     }
   };
 
+  const handleCheckout = () => {
+    navigate("/checkout");
+  };
+
   if (!token) {
     return (
       <Container>
-        <Alert severity="warning" action={
-          <Box>
-            <Button component={Link} to="/login" sx={{ marginRight: "10px" }}>Login</Button>
-            <Button component={Link} to="/register" variant="outlined">Register</Button>
-          </Box>
-        }>
+        <Alert severity="warning">
           Please login or register to access your cart.
         </Alert>
       </Container>
@@ -70,14 +70,20 @@ const Cart = () => {
                 <Button variant="outlined" onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}>+</Button>
                 <Typography sx={{ mx: 1 }}>{item.quantity}</Typography>
                 <Button variant="outlined" onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}>-</Button>
-                <IconButton color="error" onClick={() => handleUpdateQuantity(item.productId, 0)}>
+                <Button variant="outlined" color="error" onClick={() => handleUpdateQuantity(item.productId, 0)}>
                   <DeleteIcon />
-                </IconButton>
+                </Button>
               </Box>
             </ListItem>
           ))
         )}
       </List>
+
+      {cartItems.length > 0 && (
+        <Button variant="contained" color="primary" fullWidth sx={{ mt: 3 }} onClick={handleCheckout}>
+          Proceed to Checkout
+        </Button>
+      )}
     </Container>
   );
 };

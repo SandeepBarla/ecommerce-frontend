@@ -124,7 +124,7 @@ export const upsertCartItem = async (productId: number, quantity: number) => {
     const response = await api.delete("/cart");
     return response.data;
   };
-  
+
 // ✅ Remove Single Item from Cart (By Setting Quantity to 0)
 export const removeCartItem = async (productId: number) => {
     const response = await api.post("/cart", {
@@ -133,5 +133,19 @@ export const removeCartItem = async (productId: number) => {
     });
     return response.data;
 };
+
+
+// ✅ Create Order
+export const placeOrder = async (orderData: { products: string; totalAmount: number; shippingAddress: string }) => {
+    const response = await api.post("/orders", orderData); // ✅ Send `orderData` directly, not wrapped in `orderDto`
+    return response.data;
+};
+
+  // ✅ Get User Orders
+  export const getUserOrders = async () => {
+    const response = await api.get("/orders");
+    return response.data;
+  };
+  
 
   
