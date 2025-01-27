@@ -1,24 +1,70 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
-import { Container, Grid, Card, CardMedia, CardContent, Typography, Button } from "@mui/material";
-import { getProducts, Product } from "../api";
+import { Container, Grid, Card, CardMedia, CardContent, Typography, Button, Box, Alert } from "@mui/material";
+import { getProducts, getCart, upsertCartItem, Product, CartItem } from "../api";
+import { AuthContext } from "../context/AuthContext";
 
 const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [authBanner, setAuthBanner] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const authContext = useContext(AuthContext);
+  const { token } = authContext || {}; // Handle missing context
 
   useEffect(() => {
-    getProducts()
-      .then((data) => {
-        setProducts(data);
+    const fetchProductsAndCart = async () => {
+      try {
+        const productData = await getProducts();
+        setProducts(productData);
+        if (token) {
+          const cartData = await getCart();
+          setCartItems(cartData.items);
+        }
         setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to fetch products");
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError("Failed to fetch products. Please try again.");
         setLoading(false);
-      });
-  }, []);
+      }
+    };
+    fetchProductsAndCart();
+  }, [token]);
+
+  const handleAddToCart = async (productId: number) => {
+    if (!token) {
+      setAuthBanner(true);
+      return;
+    }
+
+    try {
+      await upsertCartItem(productId, 1);
+      const cartData = await getCart();
+      setCartItems(cartData.items);
+      setSuccessMessage("Item added to cart!");
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
+  };
+
+  const handleUpdateQuantity = async (productId: number, newQuantity: number) => {
+    try {
+      await upsertCartItem(productId, newQuantity);
+      const cartData = await getCart();
+      setCartItems(cartData.items);
+      setSuccessMessage(newQuantity === 0 ? "Item removed from cart" : "Cart updated!");
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error) {
+      console.error("Error updating cart:", error);
+    }
+  };
+
+  const isInCart = (productId: number) => cartItems.some((item) => item.productId === productId);
+  const getCartItemQuantity = (productId: number) => cartItems.find((item) => item.productId === productId)?.quantity || 0;
 
   if (loading) {
     return <Typography textAlign="center" sx={{ marginTop: "20px" }}>Loading products...</Typography>;
@@ -30,6 +76,28 @@ const Products = () => {
 
   return (
     <Container sx={{ padding: "40px" }}>
+      {authBanner && (
+        <Alert
+          severity="warning"
+          action={
+            <Box>
+              <Button component={Link} to="/login" sx={{ marginRight: "10px" }}>Login</Button>
+              <Button component={Link} to="/register" variant="outlined">Register</Button>
+            </Box>
+          }
+          onClose={() => setAuthBanner(false)}
+          sx={{ marginBottom: "20px" }}
+        >
+          Please login or register to add items to the cart.
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert severity="success" sx={{ marginBottom: "20px" }}>
+          {successMessage}
+        </Alert>
+      )}
+
       <Typography variant="h4" fontWeight="bold" sx={{ marginBottom: "20px", textAlign: "center" }}>
         Our Collection
       </Typography>
@@ -41,16 +109,19 @@ const Products = () => {
               <CardMedia component="img" height="200" image={product.imageUrl} alt={product.name} />
               <CardContent>
                 <Typography variant="h6" fontWeight="bold">{product.name}</Typography>
-                <Typography variant="body2" color="text.secondary">{product.description}</Typography>
                 <Typography variant="h6" color="primary">₹{product.price}</Typography>
-                <Button
-                  component={Link}
-                  to={`/products/${product.id}`} // ✅ Navigates to product details
-                  variant="contained"
-                  sx={{ marginTop: "10px", backgroundColor: "#8B0000" }}
-                >
-                  View Details
-                </Button>
+
+                {isInCart(product.id) ? (
+                  <Box sx={{ marginTop: "10px", display: "flex", alignItems: "center" }}>
+                    <Button variant="outlined" onClick={() => handleUpdateQuantity(product.id, getCartItemQuantity(product.id) + 1)}>+</Button>
+                    <Typography sx={{ mx: 2 }}>{getCartItemQuantity(product.id)}</Typography>
+                    <Button variant="outlined" onClick={() => handleUpdateQuantity(product.id, getCartItemQuantity(product.id) - 1)}>-</Button>
+                  </Box>
+                ) : (
+                  <Button variant="contained" onClick={() => handleAddToCart(product.id)}>
+                    Add to Cart
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </Grid>

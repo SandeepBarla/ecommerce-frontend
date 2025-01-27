@@ -88,4 +88,50 @@ export interface LoginData {
           throw error;
       }
   };
+
+  export interface CartItem {
+    productId: number;
+    productName: string;
+    quantity: number;
+    price: number;
+  }
+  
+// ✅ Add or Update a Single Cart Item (Upsert)
+export const upsertCartItem = async (productId: number, quantity: number) => {
+    const response = await api.post("/cart", {
+      productId,
+      quantity,
+    });
+    return response.data;
+  };
+  
+  // ✅ Bulk Update Cart (Multiple Products)
+  export const bulkUpdateCart = async (cartItems: { productId: number; quantity: number }[]) => {
+    const response = await api.patch("/cart", {
+      items: cartItems,
+    });
+    return response.data;
+  };
+  
+  // ✅ Get Cart
+  export const getCart = async () => {
+    const response = await api.get("/cart");
+    return response.data;
+  };
+  
+  // ✅ Clear Cart
+  export const clearCart = async () => {
+    const response = await api.delete("/cart");
+    return response.data;
+  };
+  
+// ✅ Remove Single Item from Cart (By Setting Quantity to 0)
+export const removeCartItem = async (productId: number) => {
+    const response = await api.post("/cart", {
+      productId,
+      quantity: 0, // ✅ Setting quantity to 0 removes item
+    });
+    return response.data;
+};
+
   

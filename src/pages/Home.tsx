@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { Container, Typography, Button, Box } from "@mui/material";
+import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const Home = () => {
@@ -86,6 +87,7 @@ const Home = () => {
             boxShadow: "2px 4px 10px rgba(0,0,0,0.2)",
             "&:hover": { backgroundColor: "#B71C1C" },
           }}
+          component={Link} to="/products"
         >
           Shop Now
         </Button>

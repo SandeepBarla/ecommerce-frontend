@@ -41,6 +41,7 @@ const Navbar = () => {
         {/* Desktop Navigation Links */}
         <Box sx={{ display: { xs: "none", md: "flex" } }}>
           <Button color="inherit" component={Link} to="/products">Products</Button>
+          <Button color="inherit" component={Link} to="/cart">Cart</Button>
           {!user ? (
             <>
               <Button color="inherit" component={Link} to="/login">Login</Button>
@@ -61,6 +62,7 @@ const Navbar = () => {
           </IconButton>
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
             <MenuItem component={Link} to="/products" onClick={handleMenuClose}>Products</MenuItem>
+            <MenuItem component={Link} to="/cart" onClick={handleMenuClose}>Cart</MenuItem>
             {!user ? (
               <>
                 <MenuItem component={Link} to="/login" onClick={handleMenuClose}>Login</MenuItem>
