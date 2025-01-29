@@ -117,9 +117,3 @@ Ensure the backend is running before starting the frontend.
 - **[Sandeep Barla](https://github.com/SandeepBarla)** - Full Stack Developer
 
 ---
-
-## 📜 License
-
-This project is **open-source** under the [MIT License](LICENSE).
-
----
