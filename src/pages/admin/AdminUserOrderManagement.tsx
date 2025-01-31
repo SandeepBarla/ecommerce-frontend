@@ -16,34 +16,34 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  fetchUserOrders,
-  fetchUsers,
-  Order,
-  updateOrderStatus,
-} from "../../api";
+import { getUserOrders, updateOrderStatus } from "../../api/orders"; // ✅ Corrected API imports
+import { getAllUsers } from "../../api/users"; // ✅ Corrected API import
+import { OrderResponse } from "../../types/order/OrderResponse"; // ✅ Import correct type
 
-const AdminUserOrders = () => {
+const AdminUserOrderManagement = () => {
+  // ✅ Renamed component for clarity
   const { userId } = useParams();
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<{
     [key: number]: string;
   }>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
 
-  // Fetch User Name
+  // ✅ Fetch User Name
   useEffect(() => {
     const loadUserName = async () => {
       try {
-        const users = await fetchUsers();
+        const users = await getAllUsers();
         const user = users.find((u) => u.id === Number(userId));
         if (user) {
           setUserName(user.fullName);
         }
       } catch (error) {
         console.error("Failed to fetch user name:", error);
+        setError("Failed to load user details.");
       }
     };
 
@@ -52,23 +52,32 @@ const AdminUserOrders = () => {
     }
   }, [userId]);
 
-  // Fetch Orders for Selected User
+  // ✅ Fetch Orders for Selected User
   useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        if (!userId) return;
+        const response = await getUserOrders(Number(userId));
+        setOrders(response);
+
+        // ✅ Initialize statuses
+        const initialStatuses: { [key: number]: string } = {};
+        response.forEach((order) => {
+          initialStatuses[order.id] = order.orderStatus;
+        });
+        setSelectedStatuses(initialStatuses);
+      } catch (error) {
+        console.error("Failed to fetch user orders:", error);
+        setError("Failed to load user orders.");
+      }
+    };
+
     if (userId) {
-      fetchUserOrders(Number(userId))
-        .then((data) => {
-          setOrders(data);
-          const initialStatuses: { [key: number]: string } = {};
-          data.forEach((order: Order) => {
-            initialStatuses[order.id] = order.orderStatus;
-          });
-          setSelectedStatuses(initialStatuses);
-        })
-        .catch((error) => console.error("Failed to fetch user orders:", error));
+      fetchOrders();
     }
   }, [userId]);
 
-  // Handle Status Change
+  // ✅ Handle Status Change
   const handleStatusChange = (orderId: number, newStatus: string) => {
     setSelectedStatuses((prev) => ({
       ...prev,
@@ -76,15 +85,16 @@ const AdminUserOrders = () => {
     }));
   };
 
-  // Handle Update Click
+  // ✅ Handle Update Click
   const handleUpdateStatus = async (orderId: number) => {
     const newStatus = selectedStatuses[orderId];
 
     try {
-      await updateOrderStatus(orderId, newStatus);
+      if (!userId) return;
+      await updateOrderStatus(Number(userId), orderId, { status: newStatus }); // ✅ Pass userId in the request
       setSuccessMessage(`Order #${orderId} status updated to ${newStatus}`);
 
-      // Update the UI after status change
+      // ✅ Update the UI after status change
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === orderId ? { ...order, orderStatus: newStatus } : order
@@ -92,6 +102,7 @@ const AdminUserOrders = () => {
       );
     } catch (error) {
       console.error("Error updating order status:", error);
+      setError("Failed to update order status.");
     }
   };
 
@@ -105,11 +116,20 @@ const AdminUserOrders = () => {
         Orders for {userName || `User #${userId}`}
       </Typography>
 
-      {/* Success Banner - Moved Below Heading */}
+      {/* Success Banner */}
       {successMessage && (
         <Box sx={{ mt: 2, mb: 2, display: "flex", justifyContent: "center" }}>
           <Alert severity="success" onClose={() => setSuccessMessage(null)}>
             {successMessage}
+          </Alert>
+        </Box>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <Box sx={{ mt: 2, mb: 2, display: "flex", justifyContent: "center" }}>
+          <Alert severity="error" onClose={() => setError(null)}>
+            {error}
           </Alert>
         </Box>
       )}
@@ -167,7 +187,7 @@ const AdminUserOrders = () => {
                 <TableRow key={order.id}>
                   <TableCell>{order.id}</TableCell>
                   <TableCell>
-                    {order.products.map((product, index) => (
+                    {order.orderProducts.map((product, index) => (
                       <div key={index}>
                         {`Product ID: ${product.productId}, Qty: ${product.quantity}`}
                       </div>
@@ -209,4 +229,4 @@ const AdminUserOrders = () => {
   );
 };
 
-export default AdminUserOrders;
+export default AdminUserOrderManagement;

@@ -17,49 +17,52 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { deleteProduct, fetchProducts, Product } from "../../api"; // ✅ Import API function
-import { AuthContext } from "../../context/AuthContext"; // ✅ Import Auth Context
+import { deleteProduct, fetchProducts } from "../../api/products"; // ✅ Correct API import
+import { AuthContext } from "../../context/AuthContext";
+import { ProductResponse } from "../../types/product/ProductResponse"; // ✅ Use correct type
 
-const AdminProducts = () => {
+const AdminProductManagement = () => {
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [deleteSuccess, setDeleteSuccess] = useState(false); // ✅ Success Banner State
+  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(
     null
   );
+  const [error, setError] = useState<string | null>(null);
 
-  // Redirect non-admin users
+  // ✅ Redirect non-admin users
   useEffect(() => {
     if (!authContext?.user || authContext.user.role !== "Admin") {
       navigate("/");
     }
   }, [authContext?.user, navigate]);
 
-  // Fetch Products
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
-  const loadProducts = async () => {
+  // ✅ Fetch Products with useCallback
+  const loadProducts = useCallback(async () => {
     try {
       const data = await fetchProducts();
       setProducts(data);
     } catch (error) {
       console.error("Failed to load products:", error);
+      setError("Failed to load products. Please try again.");
     }
-  };
+  }, []);
 
-  // Handle Delete Confirmation Dialog
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  // ✅ Handle Delete Confirmation Dialog
   const handleDeleteConfirmation = (productId: number) => {
     setSelectedProductId(productId);
     setDeleteDialogOpen(true);
   };
 
-  // Handle Delete Product
+  // ✅ Handle Delete Product
   const handleDeleteProduct = async () => {
     if (selectedProductId) {
       try {
@@ -68,6 +71,7 @@ const AdminProducts = () => {
         loadProducts(); // Reload products after deletion
       } catch (error) {
         console.error("Failed to delete product:", error);
+        setError("Failed to delete product. Please try again.");
       }
     }
     setDeleteDialogOpen(false);
@@ -81,6 +85,13 @@ const AdminProducts = () => {
       >
         Manage Products
       </Typography>
+
+      {/* ✅ Error Banner */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       {/* ✅ Success Banner for Deletion */}
       {deleteSuccess && (
@@ -139,10 +150,11 @@ const AdminProducts = () => {
                     alt={product.name}
                     width="50"
                     height="50"
+                    style={{ borderRadius: "5px" }}
                   />
                 </TableCell>
                 <TableCell>{product.name}</TableCell>
-                <TableCell>${product.price.toFixed(2)}</TableCell>
+                <TableCell>₹{product.price.toFixed(2)}</TableCell>
                 <TableCell>{product.stock}</TableCell>
                 <TableCell>
                   <Button
@@ -190,4 +202,4 @@ const AdminProducts = () => {
   );
 };
 
-export default AdminProducts;
+export default AdminProductManagement;

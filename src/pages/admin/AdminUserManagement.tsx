@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Container,
   Paper,
@@ -12,29 +13,33 @@ import {
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchUsers } from "../../api"; // ✅ Import API function
-import { AuthContext, User } from "../../context/AuthContext"; // ✅ Import Auth Context
+import { getAllUsers } from "../../api/users"; // ✅ Corrected API import
+import { AuthContext } from "../../context/AuthContext"; // ✅ Import Auth Context
+import { UserResponse } from "../../types/user/UserResponse"; // ✅ Corrected User Type
 
-const AdminUsers = () => {
+const AdminUserManagement = () => {
+  // ✅ Renamed Component
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserResponse[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // Redirect non-admin users
+  // ✅ Redirect Non-Admin Users
   useEffect(() => {
     if (!authContext?.user || authContext.user.role !== "Admin") {
       navigate("/");
     }
   }, [authContext?.user, navigate]);
 
-  // Fetch Users
+  // ✅ Fetch Users
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        const data = await fetchUsers();
+        const data = await getAllUsers();
         setUsers(data);
       } catch (error) {
         console.error("Failed to load users:", error);
+        setError("Failed to fetch users. Please try again.");
       }
     };
     loadUsers();
@@ -49,6 +54,9 @@ const AdminUsers = () => {
       >
         Manage Users
       </Typography>
+
+      {/* ✅ Display Error if Users Fail to Load */}
+      {error && <Alert severity="error">{error}</Alert>}
 
       {/* ✅ Back Button */}
       <Button
@@ -76,27 +84,35 @@ const AdminUsers = () => {
               </TableCell>
               <TableCell>
                 <b>Actions</b>
-              </TableCell>{" "}
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.email}>
-                <TableCell>{user.fullName}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>
-                  {/* ✅ "View Orders" Button */}
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => navigate(`/orders/users/${user.id}`)}
-                  >
-                    View Orders
-                  </Button>
+            {users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  No users available.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.fullName}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    {/* ✅ "View Orders" Button */}
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => navigate(`/admin/users/${user.id}/orders`)} // ✅ Corrected URL
+                    >
+                      View Orders
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -104,4 +120,4 @@ const AdminUsers = () => {
   );
 };
 
-export default AdminUsers;
+export default AdminUserManagement;

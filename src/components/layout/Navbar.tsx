@@ -11,13 +11,27 @@ import {
 } from "@mui/material";
 import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../../context/AuthContext";
 
 const Navbar = () => {
   const authContext = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  if (!authContext) return null;
+  // ✅ Ensure `authContext` always exists before usage
+  if (!authContext) {
+    return (
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "#8B0000", padding: "10px" }}
+      >
+        <Toolbar>
+          <Typography variant="h6" color="white">
+            Loading...
+          </Typography>
+        </Toolbar>
+      </AppBar>
+    );
+  }
 
   const { user, logout } = authContext;
   const isAdmin = user?.role === "Admin";
@@ -36,7 +50,7 @@ const Navbar = () => {
       sx={{ backgroundColor: "#8B0000", padding: "10px" }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* Brand Name */}
+        {/* ✅ Brand Name */}
         <Typography
           variant="h5"
           component={Link}
@@ -51,7 +65,7 @@ const Navbar = () => {
           Sakhya
         </Typography>
 
-        {/* Desktop Navigation Links */}
+        {/* ✅ Desktop Navigation Links */}
         <Box sx={{ display: { xs: "none", md: "flex" } }}>
           <Button color="inherit" component={Link} to="/products">
             Products
@@ -78,7 +92,7 @@ const Navbar = () => {
               </Button>
             </>
           )}
-          {/* Show Admin Dashboard only for Admin users */}
+          {/* ✅ Show Admin Dashboard only for Admin users */}
           {isAdmin && (
             <Button color="inherit" component={Link} to="/admin">
               Admin Dashboard
@@ -86,12 +100,19 @@ const Navbar = () => {
           )}
         </Box>
 
-        {/* Mobile Navigation Menu */}
+        {/* ✅ Mobile Navigation Menu */}
         <Box sx={{ display: { xs: "block", md: "none" } }}>
-          <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
+          <IconButton
+            edge="end"
+            color="inherit"
+            onClick={handleMenuOpen}
+            aria-controls="mobile-menu"
+            aria-haspopup="true"
+          >
             <MenuIcon />
           </IconButton>
           <Menu
+            id="mobile-menu"
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
@@ -126,15 +147,15 @@ const Navbar = () => {
               <>
                 <MenuItem
                   onClick={() => {
-                    logout();
                     handleMenuClose();
+                    logout(); // ✅ Close menu before logout
                   }}
                 >
                   Logout
                 </MenuItem>
               </>
             )}
-            {/* Show Admin Dashboard only for Admin users */}
+            {/* ✅ Show Admin Dashboard only for Admin users */}
             {isAdmin && (
               <MenuItem component={Link} to="/admin" onClick={handleMenuClose}>
                 Admin Dashboard

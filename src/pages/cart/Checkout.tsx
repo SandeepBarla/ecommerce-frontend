@@ -6,39 +6,46 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CartItem, clearCart, getCart, placeOrder } from "../api";
-import { AuthContext } from "../context/AuthContext";
+import { clearCart, getCart } from "../../api/cart";
+import { placeOrder } from "../../api/orders"; // ✅ Import order API
+import { AuthContext } from "../../context/AuthContext";
+import { CartItemResponse } from "../../types/cart/CartResponse";
+import { OrderCreateRequest } from "../../types/order/OrderRequest"; // ✅ Import the correct request type
 
 const Checkout = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItemResponse[]>([]);
   const [shippingAddress, setShippingAddress] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
 
-  if (!authContext) {
-    return <Typography color="error">Auth context not available</Typography>;
-  }
+  const { token, user } = authContext || {}; // ✅ Ensure `authContext` is always accessed safely
 
-  const { token } = authContext;
-
-  useEffect(() => {
-    if (token) {
-      fetchCart();
-    }
-  }, [token]);
-
-  const fetchCart = async () => {
+  // ✅ Wrap fetchCart in useCallback (MUST be at the top level)
+  const fetchCart = useCallback(async () => {
     try {
-      const response = await getCart();
-      setCartItems(response.items);
+      if (!user?.id) return;
+      const response = await getCart(user.id);
+      setCartItems(response.cartItems);
     } catch (error) {
       console.error("Error fetching cart:", error);
     }
-  };
+  }, [user?.id]); // ✅ Dependency: user.id
+
+  // ✅ useEffect must always be called unconditionally
+  useEffect(() => {
+    if (token && user?.id) {
+      fetchCart();
+    }
+  }, [token, user?.id, fetchCart]);
+
+  // ✅ Move the early return *after* hooks
+  if (!authContext) {
+    return <Typography color="error">Auth context not available</Typography>;
+  }
 
   const handlePlaceOrder = async () => {
     if (!shippingAddress.trim()) {
@@ -46,18 +53,23 @@ const Checkout = () => {
       return;
     }
 
-    const productsArray = cartItems.map((item) => ({
-      productId: item.productId,
+    if (!user?.id) {
+      setError("User ID not found.");
+      return;
+    }
+
+    const orderProducts = cartItems.map((item) => ({
+      productId: item.product.id,
       quantity: item.quantity,
     }));
 
-    if (productsArray.length === 0) {
+    if (orderProducts.length === 0) {
       setError("Your cart is empty!");
       return;
     }
 
     const totalAmount = cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) => total + item.product.price * item.quantity,
       0
     );
     if (totalAmount <= 0) {
@@ -65,15 +77,15 @@ const Checkout = () => {
       return;
     }
 
-    const orderData = {
-      products: productsArray,
+    const orderData: OrderCreateRequest = {
+      orderProducts, // ✅ Correct key based on backend DTO
       totalAmount,
       shippingAddress: shippingAddress.trim(),
     };
 
     try {
-      await placeOrder(orderData);
-      await clearCart(); // ✅ Clear the cart after placing the order
+      await placeOrder(user.id, orderData); // ✅ Pass userId in API URL, not in request body
+      await clearCart(user.id); // ✅ Clear the cart for the specific user
       setSuccessMessage("Order placed successfully! Redirecting...");
       setTimeout(() => navigate("/orders"), 3000);
     } catch (error) {
@@ -120,12 +132,12 @@ const Checkout = () => {
       </Typography>
       {cartItems.map((item) => (
         <Box
-          key={item.productId}
+          key={item.id}
           sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
         >
-          <Typography>{item.productName}</Typography>
+          <Typography>{item.product.name}</Typography>
           <Typography>
-            ₹{item.price} x {item.quantity}
+            ₹{item.product.price} x {item.quantity}
           </Typography>
         </Box>
       ))}
@@ -133,7 +145,7 @@ const Checkout = () => {
       <Typography variant="h6" sx={{ mt: 2 }}>
         Total: ₹
         {cartItems.reduce(
-          (total, item) => total + item.price * item.quantity,
+          (total, item) => total + item.product.price * item.quantity,
           0
         )}
       </Typography>

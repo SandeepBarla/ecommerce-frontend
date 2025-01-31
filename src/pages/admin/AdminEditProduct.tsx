@@ -7,41 +7,57 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getProductById, Product, updateProduct } from "../../api";
+import { fetchProductById, updateProduct } from "../../api/products"; // ✅ Correct API import
 import { AuthContext } from "../../context/AuthContext";
+import { ProductResponse } from "../../types/product/ProductResponse"; // ✅ Use correct type
+import { ProductUpsertRequest } from "../../types/product/ProductUpsertRequest"; // ✅ Upsert request type
 
 const AdminEditProduct = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
-  const [formData, setFormData] = useState<Product | null>(null);
+  const [formData, setFormData] = useState<ProductUpsertRequest | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // ✅ Redirect non-admin users
   useEffect(() => {
     if (!authContext?.user || authContext.user.role !== "Admin") {
       navigate("/");
     }
+  }, [authContext?.user, navigate]);
 
-    if (id) {
-      getProductById(Number(id))
-        .then((product) => {
-          setFormData(product);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching product:", err);
-          setError("Failed to load product data.");
-          setLoading(false);
-        });
-    } else {
+  // ✅ Fetch Product Data
+  const fetchProduct = useCallback(async () => {
+    if (!id) {
       setError("Invalid product ID.");
       setLoading(false);
+      return;
     }
-  }, [id, authContext?.user, navigate]);
+
+    try {
+      const product: ProductResponse = await fetchProductById(Number(id));
+      setFormData({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        stock: product.stock,
+      });
+    } catch (err) {
+      console.error("Error fetching product:", err);
+      setError("Failed to load product data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (formData) {
@@ -51,14 +67,15 @@ const AdminEditProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData) {
-      try {
-        await updateProduct(formData.id, formData);
-        setSuccessMessage("Product updated successfully!");
-        setTimeout(() => navigate("/admin/products"), 2000);
-      } catch (err) {
-        setError("Failed to update product. Please try again.");
-      }
+    if (!id || !formData) return;
+
+    try {
+      await updateProduct(Number(id), formData);
+      setSuccessMessage("Product updated successfully!");
+      setTimeout(() => navigate("/admin/products"), 2000);
+    } catch (err) {
+      console.error("Error updating product:", err);
+      setError("Failed to update product. Please try again.");
     }
   };
 
@@ -96,7 +113,7 @@ const AdminEditProduct = () => {
               fullWidth
               label="Name"
               name="name"
-              value={formData?.name}
+              value={formData.name}
               onChange={handleChange}
               margin="normal"
               required
@@ -105,7 +122,7 @@ const AdminEditProduct = () => {
               fullWidth
               label="Description"
               name="description"
-              value={formData?.description}
+              value={formData.description}
               onChange={handleChange}
               margin="normal"
               required
@@ -115,7 +132,7 @@ const AdminEditProduct = () => {
               type="number"
               label="Price"
               name="price"
-              value={formData?.price}
+              value={formData.price}
               onChange={handleChange}
               margin="normal"
               required
@@ -124,7 +141,7 @@ const AdminEditProduct = () => {
               fullWidth
               label="Image URL"
               name="imageUrl"
-              value={formData?.imageUrl}
+              value={formData.imageUrl}
               onChange={handleChange}
               margin="normal"
               required
@@ -134,7 +151,7 @@ const AdminEditProduct = () => {
               type="number"
               label="Stock"
               name="stock"
-              value={formData?.stock}
+              value={formData.stock}
               onChange={handleChange}
               margin="normal"
               required

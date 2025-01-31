@@ -1,5 +1,5 @@
+import { Box, Button, Typography } from "@mui/material";
 import { useContext } from "react";
-import { Container, Typography, Button, Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
@@ -36,7 +36,8 @@ const Home = () => {
           height: "calc(100vh - 64px)", // Adjusted to fit below navbar
           textAlign: "center",
           padding: "20px",
-          backgroundImage: "url('https://static.vecteezy.com/system/resources/previews/044/149/478/non_2x/a-row-of-colorful-fabrics-with-a-beaded-pattern-free-photo.jpg')",
+          backgroundImage:
+            "url('https://static.vecteezy.com/system/resources/previews/044/149/478/non_2x/a-row-of-colorful-fabrics-with-a-beaded-pattern-free-photo.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -87,7 +88,8 @@ const Home = () => {
             boxShadow: "2px 4px 10px rgba(0,0,0,0.2)",
             "&:hover": { backgroundColor: "#B71C1C" },
           }}
-          component={Link} to="/products"
+          component={Link}
+          to="/products"
         >
           Shop Now
         </Button>

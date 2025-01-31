@@ -1,63 +1,14 @@
-import { createContext, ReactNode, useEffect, useState } from "react";
-import { api, setAuthToken } from "../api";
-
-export interface User {
-  id: number;
-  fullName: string;
-  email: string;
-  role: string;
-}
+import { createContext } from "react";
+import { UserResponse } from "../types/user/UserResponse"; // ✅ Use defined UserResponse type
 
 interface AuthContextType {
   token: string | null;
-  user: User | null;
-  login: (token: string) => void;
+  role: string | null;
+  user: UserResponse | null;
+  login: (token: string, role: string) => void;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
 );
-
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
-  );
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    if (token) {
-      setAuthToken(token);
-      fetchUserProfile();
-    }
-  }, [token]);
-
-  const fetchUserProfile = async () => {
-    try {
-      const response = await api.get<User>("/auth/profile"); // ✅ Fetch user details from API
-      setUser(response.data);
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      logout(); // Logout if fetching profile fails (invalid token)
-    }
-  };
-
-  const login = (newToken: string) => {
-    setToken(newToken);
-    setAuthToken(newToken);
-    fetchUserProfile(); // ✅ Fetch user data after login
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    setAuthToken(null);
-    localStorage.removeItem("token");
-  };
-
-  return (
-    <AuthContext.Provider value={{ token, user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};

@@ -1,15 +1,24 @@
-import { Box, Button, Container, TextField, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { addProduct, Product } from "../../api"; // ✅ Import API function
-import { AuthContext } from "../../context/AuthContext"; // ✅ Import Auth Context
+import { createProduct } from "../../api/products"; // ✅ Correct API import
+import { AuthContext } from "../../context/AuthContext";
+import { ProductUpsertRequest } from "../../types/product/ProductUpsertRequest"; // ✅ Use correct type
 
 const AdminAddProduct = () => {
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<Product>({
-    id: 0, // Not needed for new products, but required in TypeScript
+  const [formData, setFormData] = useState<ProductUpsertRequest>({
     name: "",
     description: "",
     price: 0,
@@ -17,25 +26,23 @@ const AdminAddProduct = () => {
     stock: 0,
   });
 
-  const [error, setError] = useState<string | null>(null);
-
-  // Redirect non-admin users
+  // ✅ Redirect non-admin users safely inside useEffect (Fix hook issue)
   if (!authContext?.user || authContext.user.role !== "Admin") {
     navigate("/");
   }
 
-  // Handle Input Change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle Form Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await addProduct(formData);
-      navigate("/admin/products"); // Redirect after successful addition
+      await createProduct(formData);
+      setSuccessMessage("Product added successfully!");
+      setTimeout(() => navigate("/admin/products"), 2000);
     } catch (err) {
+      console.error("Error creating product:", err);
       setError("Failed to add product. Please try again.");
     }
   };
@@ -48,6 +55,10 @@ const AdminAddProduct = () => {
         </Typography>
       </Box>
 
+      {/* ✅ Success & Error Messages */}
+      {successMessage && <Alert severity="success">{successMessage}</Alert>}
+      {error && <Alert severity="error">{error}</Alert>}
+
       {/* ✅ Back to Admin Panel Button */}
       <Button
         variant="contained"
@@ -57,8 +68,6 @@ const AdminAddProduct = () => {
       >
         🔙 Back to Admin Dashboard
       </Button>
-
-      {error && <Typography color="error">{error}</Typography>}
 
       <form onSubmit={handleSubmit}>
         <TextField

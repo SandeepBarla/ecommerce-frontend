@@ -9,57 +9,57 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  CartItem,
-  getCart,
-  getProducts,
-  Product,
-  upsertCartItem,
-} from "../api";
+import { getCart, upsertCartItem } from "../api/cart"; // ✅ Correct import
+import { fetchProducts } from "../api/products"; // ✅ Correct import
 import { AuthContext } from "../context/AuthContext";
+import { CartResponse } from "../types/cart/CartResponse";
+import { ProductResponse } from "../types/product/ProductResponse";
 
 const Products = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [authBanner, setAuthBanner] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const authContext = useContext(AuthContext);
-  const { token } = authContext || {}; // Handle missing context
+  const { token, user } = authContext || {}; // ✅ Handle missing context
+
+  // ✅ Fetch Products and Cart Data
+  const fetchProductsAndCart = useCallback(async () => {
+    try {
+      const productData = await fetchProducts();
+      setProducts(productData);
+      if (token && user) {
+        const cartData = await getCart(user.id);
+        setCart(cartData);
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setError("Failed to fetch products. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token, user]);
 
   useEffect(() => {
-    const fetchProductsAndCart = async () => {
-      try {
-        const productData = await getProducts();
-        setProducts(productData);
-        if (token) {
-          const cartData = await getCart();
-          setCartItems(cartData.items);
-        }
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching products:", err);
-        setError("Failed to fetch products. Please try again.");
-        setLoading(false);
-      }
-    };
     fetchProductsAndCart();
-  }, [token]);
+  }, [fetchProductsAndCart]);
 
+  // ✅ Handle Adding to Cart
   const handleAddToCart = async (productId: number) => {
-    if (!token) {
+    if (!token || !user) {
       setAuthBanner(true);
       return;
     }
 
     try {
-      await upsertCartItem(productId, 1);
-      const cartData = await getCart();
-      setCartItems(cartData.items);
+      await upsertCartItem(user.id, productId, 1);
+      const updatedCart = await getCart(user.id);
+      setCart(updatedCart);
       setSuccessMessage("Item added to cart!");
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
@@ -67,14 +67,16 @@ const Products = () => {
     }
   };
 
+  // ✅ Handle Updating Cart Quantity
   const handleUpdateQuantity = async (
     productId: number,
     newQuantity: number
   ) => {
+    if (!user) return;
     try {
-      await upsertCartItem(productId, newQuantity);
-      const cartData = await getCart();
-      setCartItems(cartData.items);
+      await upsertCartItem(user.id, productId, newQuantity);
+      const updatedCart = await getCart(user.id);
+      setCart(updatedCart);
       setSuccessMessage(
         newQuantity === 0 ? "Item removed from cart" : "Cart updated!"
       );
@@ -85,9 +87,10 @@ const Products = () => {
   };
 
   const isInCart = (productId: number) =>
-    cartItems.some((item) => item.productId === productId);
+    cart?.cartItems.some((item) => item.product.id === productId) ?? false;
   const getCartItemQuantity = (productId: number) =>
-    cartItems.find((item) => item.productId === productId)?.quantity || 0;
+    cart?.cartItems.find((item) => item.product.id === productId)?.quantity ||
+    0;
 
   if (loading) {
     return (
