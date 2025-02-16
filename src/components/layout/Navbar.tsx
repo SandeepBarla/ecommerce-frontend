@@ -51,7 +51,7 @@ const Navbar = () => {
 
   // ✅ Button Styling (Highlight active page & hover effect)
   const getButtonStyles = (path: string) => ({
-    color: location.pathname === path ? "#FFD700" : "white", // Highlight active page
+    color: location.pathname === path ? "#FFD700" : "white",
     fontWeight: location.pathname === path ? "bold" : "normal",
     backgroundColor: "transparent",
     "&:hover": {
@@ -95,8 +95,8 @@ const Navbar = () => {
         sx={{ backgroundColor: "#8B0000", padding: "10px" }}
       >
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          {/* ✅ Mobile Menu Icon - Moved to Left */}
-          <Box sx={{ display: { xs: "block", md: "none" } }}>
+          {/* ✅ Mobile Menu Icon & Brand Name - Aligned to Left */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <IconButton
               edge="start"
               color="inherit"
@@ -104,24 +104,58 @@ const Navbar = () => {
             >
               <MenuIcon />
             </IconButton>
+            <Typography
+              variant="h5"
+              component={Link}
+              to="/"
+              sx={{
+                textDecoration: "none",
+                color: "white",
+                fontWeight: "bold",
+                fontFamily: "'Playfair Display', serif",
+              }}
+            >
+              Sakhya
+            </Typography>
           </Box>
 
-          {/* ✅ Brand Name - Centered & Clickable in Mobile */}
-          <Typography
-            variant="h5"
-            component={Link}
-            to="/"
-            sx={{
-              textDecoration: "none",
-              color: "white",
-              fontWeight: "bold",
-              fontFamily: "'Playfair Display', serif",
-              flexGrow: 1, // ✅ Centers text in Mobile
-              textAlign: { xs: "center", md: "left" }, // ✅ Centers only in Mobile
-            }}
-          >
-            Sakhya
-          </Typography>
+          {/* ✅ Icons on Right in Mobile View */}
+          <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
+            <IconButton component={Link} to="/products" sx={{ color: "white" }}>
+              <StorefrontIcon />
+            </IconButton>
+            {user ? (
+              <>
+                <IconButton component={Link} to="/cart" sx={{ color: "white" }}>
+                  <ShoppingCartIcon />
+                </IconButton>
+                <IconButton
+                  component={Link}
+                  to="/favourites"
+                  sx={{ color: "white" }}
+                >
+                  <FavoriteIcon />
+                </IconButton>
+              </>
+            ) : (
+              <>
+                <IconButton
+                  component={Link}
+                  to="/login"
+                  sx={{ color: "white" }}
+                >
+                  <LoginIcon />
+                </IconButton>
+                <IconButton
+                  component={Link}
+                  to="/register"
+                  sx={{ color: "white" }}
+                >
+                  <HowToRegIcon />
+                </IconButton>
+              </>
+            )}
+          </Box>
 
           {/* ✅ Desktop Navigation Links */}
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
@@ -155,7 +189,7 @@ const Navbar = () => {
           "& .MuiDrawer-paper": {
             width: "100vw",
             height: "100vh",
-            background: "linear-gradient(to bottom, #8B0000, #4B0000)", // ✅ Stylish Background
+            background: "linear-gradient(to bottom, #8B0000, #4B0000)",
             color: "white",
           },
         }}
@@ -177,7 +211,7 @@ const Navbar = () => {
               fontWeight: "bold",
               fontFamily: "'Playfair Display', serif",
             }}
-            onClick={handleDrawerToggle} // ✅ Clicking redirects to Home & closes menu
+            onClick={handleDrawerToggle}
           >
             Sakhya
           </Typography>
@@ -186,7 +220,7 @@ const Navbar = () => {
           </IconButton>
         </Box>
 
-        {/* ✅ Mobile Menu Items with Elegant Design */}
+        {/* ✅ Mobile Menu Items */}
         <List sx={{ paddingX: 4 }}>
           {menuItems.map(({ text, icon, path }) => (
             <ListItem key={text} disablePadding>
@@ -207,14 +241,13 @@ const Navbar = () => {
                     fontWeight: "bold",
                   },
                 }}
-                selected={location.pathname === path} // ✅ Highlight active page
+                selected={location.pathname === path}
               >
                 <ListItemIcon sx={{ color: "white" }}>{icon}</ListItemIcon>
                 <ListItemText primary={text} />
               </ListItemButton>
             </ListItem>
           ))}
-
           {/* ✅ Logout Button - Styled Separately */}
           {user && (
             <ListItem disablePadding>
