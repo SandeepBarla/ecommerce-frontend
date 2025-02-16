@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { clearCart, getCart, upsertCartItem } from "../../api/cart"; // ✅ Updated import path
+import { getCart, upsertCartItem } from "../../api/cart"; // ✅ Updated import path
 import { AuthContext } from "../../context/AuthContext"; // ✅ Updated import path
 import { CartResponse } from "../../types/cart/CartResponse"; // ✅ Updated import path
 
@@ -26,7 +26,6 @@ const Cart = () => {
   const { token, user } = authContext || {};
 
   const [cart, setCart] = useState<CartResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState<string>("");
 
   useEffect(() => {
@@ -52,15 +51,6 @@ const Cart = () => {
       fetchCart();
     } catch (error) {
       console.error("Error updating cart:", error);
-    }
-  };
-
-  const handleClearCart = async () => {
-    try {
-      await clearCart(user!.id);
-      setCart(null);
-    } catch (error) {
-      console.error("Error clearing cart:", error);
     }
   };
 
