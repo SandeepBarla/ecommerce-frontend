@@ -1,4 +1,4 @@
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder"; // ✅ Add to Favorites Icon
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import {
   Alert,
   Box,
@@ -11,11 +11,11 @@ import {
 } from "@mui/material";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getCart, upsertCartItem } from "../api/cart"; // ✅ Import cart-related API
-import { fetchProductById } from "../api/products"; // ✅ Correct API import
+import { getCart, upsertCartItem } from "../api/cart";
+import { fetchProductById } from "../api/products";
 import { AuthContext } from "../context/AuthContext";
 import { CartResponse } from "../types/cart/CartResponse";
-import { ProductResponse } from "../types/product/ProductResponse"; // ✅ Use correct type
+import { ProductResponse } from "../types/product/ProductResponse";
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,7 +29,10 @@ const ProductDetails = () => {
   const authContext = useContext(AuthContext);
   const { token, user } = authContext || {};
 
-  // ✅ Fetch Product and Cart Data
+  // ✅ Cloudinary Video URL
+  const cloudinaryVideoUrl =
+    "https://res.cloudinary.com/dkwnjlpaz/video/upload/v1739731017/Video-903_roc81c.mp4";
+
   const fetchProductAndCart = useCallback(async () => {
     if (!id) return;
     try {
@@ -51,13 +54,11 @@ const ProductDetails = () => {
     fetchProductAndCart();
   }, [fetchProductAndCart]);
 
-  // ✅ Handle Adding to Cart
   const handleAddToCart = async () => {
     if (!token || !user) {
       setAuthBanner(true);
       return;
     }
-
     try {
       await upsertCartItem(user.id, product!.id, 1);
       const updatedCart = await getCart(user.id);
@@ -68,30 +69,6 @@ const ProductDetails = () => {
       console.error("Error adding to cart:", error);
     }
   };
-
-  // ✅ Handle Updating Cart Quantity
-  const handleUpdateQuantity = async (newQuantity: number) => {
-    if (!token || !user) {
-      setAuthBanner(true);
-      return;
-    }
-
-    try {
-      await upsertCartItem(user.id, product!.id, newQuantity);
-      const updatedCart = await getCart(user.id);
-      setCart(updatedCart);
-      setSuccessMessage("Cart updated!");
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error) {
-      console.error("Error updating cart:", error);
-    }
-  };
-
-  const isInCart = (productId: number) =>
-    cart?.cartItems.some((item) => item.product.id === productId) ?? false;
-  const getCartItemQuantity = (productId: number) =>
-    cart?.cartItems.find((item) => item.product.id === productId)?.quantity ||
-    0;
 
   if (loading)
     return <CircularProgress sx={{ display: "block", margin: "50px auto" }} />;
@@ -131,16 +108,25 @@ const ProductDetails = () => {
       {product && (
         <Grid container spacing={4}>
           <Grid item xs={12} md={6}>
-            <Box sx={{ maxWidth: "500px", margin: "0 auto" }}>
-              <img
-                src={product.imageUrl}
-                alt={product.name}
+            {/* ✅ Display Video Only (POC) */}
+            <Box sx={{ textAlign: "center" }}>
+              <video
+                width="100%"
+                height="auto"
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls
                 style={{
-                  width: "100%",
-                  borderRadius: "10px",
+                  borderRadius: "8px",
                   boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+                  maxWidth: "500px",
                 }}
-              />
+              >
+                <source src={cloudinaryVideoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
             </Box>
           </Grid>
 
@@ -148,14 +134,10 @@ const ProductDetails = () => {
             <Typography variant="h4" fontWeight="bold">
               {product.name}
             </Typography>
-            <Typography variant="subtitle1" sx={{ color: "gray", mb: 2 }}>
-              In Category
-            </Typography>
             <Typography variant="h3" sx={{ color: "#8B0000", mb: 2 }}>
               ${product.price.toFixed(2)}
             </Typography>
 
-            {/* Select Size */}
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
               Select Size
             </Typography>
@@ -177,7 +159,6 @@ const ProductDetails = () => {
               ))}
             </Box>
 
-            {/* Product Description */}
             <Typography variant="body1" sx={{ mb: 3 }}>
               {product.description}
             </Typography>
@@ -189,39 +170,14 @@ const ProductDetails = () => {
               <FavoriteBorderIcon sx={{ color: "#008CBA" }} />
             </IconButton>
 
-            {/* Cart Actions */}
-            {isInCart(product.id) ? (
-              <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-                <Button
-                  variant="outlined"
-                  onClick={() =>
-                    handleUpdateQuantity(getCartItemQuantity(product.id) - 1)
-                  }
-                >
-                  -
-                </Button>
-                <Typography sx={{ mx: 2 }}>
-                  {getCartItemQuantity(product.id)}
-                </Typography>
-
-                <Button
-                  variant="outlined"
-                  onClick={() =>
-                    handleUpdateQuantity(getCartItemQuantity(product.id) + 1)
-                  }
-                >
-                  +
-                </Button>
-              </Box>
-            ) : (
-              <Button
-                variant="contained"
-                sx={{ backgroundColor: "#008CBA", color: "white" }}
-                onClick={handleAddToCart}
-              >
-                Add to Cart
-              </Button>
-            )}
+            {/* Add to Cart Button */}
+            <Button
+              variant="contained"
+              sx={{ backgroundColor: "#008CBA", color: "white" }}
+              onClick={handleAddToCart}
+            >
+              Add to Cart
+            </Button>
           </Grid>
         </Grid>
       )}
