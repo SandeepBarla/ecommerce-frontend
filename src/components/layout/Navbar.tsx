@@ -97,13 +97,15 @@ const Navbar = () => {
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           {/* ✅ Mobile Menu Icon & Brand Name - Aligned to Left */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={handleDrawerToggle}
-            >
-              <MenuIcon />
-            </IconButton>
+            <Box sx={{ display: { xs: "block", md: "none" } }}>
+              <IconButton
+                edge="start"
+                color="inherit"
+                onClick={handleDrawerToggle}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
             <Typography
               variant="h5"
               component={Link}
