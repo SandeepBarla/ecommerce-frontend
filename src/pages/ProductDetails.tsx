@@ -1,18 +1,21 @@
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder"; // ✅ Add to Favorites Icon
 import {
   Alert,
   Box,
   Button,
   CircularProgress,
   Container,
+  Grid,
+  IconButton,
   Typography,
 } from "@mui/material";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getCart, upsertCartItem } from "../api/cart"; // ✅ Correct API call
-import { fetchProductById } from "../api/products"; // ✅ Correct API call
+import { getCart, upsertCartItem } from "../api/cart"; // ✅ Import cart-related API
+import { fetchProductById } from "../api/products"; // ✅ Correct API import
 import { AuthContext } from "../context/AuthContext";
 import { CartResponse } from "../types/cart/CartResponse";
-import { ProductResponse } from "../types/product/ProductResponse";
+import { ProductResponse } from "../types/product/ProductResponse"; // ✅ Use correct type
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,11 +23,11 @@ const ProductDetails = () => {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [authBanner, setAuthBanner] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
   const authContext = useContext(AuthContext);
-  const { token, user } = authContext || {}; // ✅ Handle missing context
+  const { token, user } = authContext || {};
 
   // ✅ Fetch Product and Cart Data
   const fetchProductAndCart = useCallback(async () => {
@@ -126,69 +129,101 @@ const ProductDetails = () => {
       )}
 
       {product && (
-        <>
-          {/* ✅ Product Image */}
-          <Box sx={{ maxWidth: "500px", margin: "0 auto" }}>
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              style={{
-                width: "100%",
-                borderRadius: "10px",
-                boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-              }}
-            />
-          </Box>
-
-          <Typography variant="h3" fontWeight="bold" sx={{ marginTop: "20px" }}>
-            {product.name}
-          </Typography>
-          <Typography variant="h6" sx={{ color: "gray", marginTop: "10px" }}>
-            {product.description}
-          </Typography>
-          <Typography variant="h4" sx={{ color: "#8B0000", marginTop: "15px" }}>
-            ₹{product.price}
-          </Typography>
-
-          {isInCart(product.id) ? (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: "20px",
-              }}
-            >
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  handleUpdateQuantity(getCartItemQuantity(product.id) + 1)
-                }
-              >
-                +
-              </Button>
-              <Typography sx={{ mx: 2 }}>
-                {getCartItemQuantity(product.id)}
-              </Typography>
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  handleUpdateQuantity(getCartItemQuantity(product.id) - 1)
-                }
-              >
-                -
-              </Button>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <Box sx={{ maxWidth: "500px", margin: "0 auto" }}>
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                style={{
+                  width: "100%",
+                  borderRadius: "10px",
+                  boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+                }}
+              />
             </Box>
-          ) : (
-            <Button
-              variant="contained"
-              sx={{ marginTop: "10px", backgroundColor: "#007bff" }}
-              onClick={handleAddToCart}
+          </Grid>
+
+          <Grid item xs={12} md={6} sx={{ textAlign: "left" }}>
+            <Typography variant="h4" fontWeight="bold">
+              {product.name}
+            </Typography>
+            <Typography variant="subtitle1" sx={{ color: "gray", mb: 2 }}>
+              In Category
+            </Typography>
+            <Typography variant="h3" sx={{ color: "#8B0000", mb: 2 }}>
+              ${product.price.toFixed(2)}
+            </Typography>
+
+            {/* Select Size */}
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
+              Select Size
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+              {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
+                <Button
+                  key={size}
+                  variant={selectedSize === size ? "contained" : "outlined"}
+                  onClick={() => setSelectedSize(size)}
+                  sx={{
+                    minWidth: "50px",
+                    color: selectedSize === size ? "white" : "black",
+                    backgroundColor:
+                      selectedSize === size ? "#008CBA" : "white",
+                  }}
+                >
+                  {size}
+                </Button>
+              ))}
+            </Box>
+
+            {/* Product Description */}
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              {product.description}
+            </Typography>
+
+            {/* Add to Favorites */}
+            <IconButton
+              sx={{ border: "1px solid #008CBA", borderRadius: "50%", mr: 2 }}
             >
-              Add to Cart
-            </Button>
-          )}
-        </>
+              <FavoriteBorderIcon sx={{ color: "#008CBA" }} />
+            </IconButton>
+
+            {/* Cart Actions */}
+            {isInCart(product.id) ? (
+              <Box sx={{ display: "inline-flex", alignItems: "center" }}>
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    handleUpdateQuantity(getCartItemQuantity(product.id) - 1)
+                  }
+                >
+                  -
+                </Button>
+                <Typography sx={{ mx: 2 }}>
+                  {getCartItemQuantity(product.id)}
+                </Typography>
+
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    handleUpdateQuantity(getCartItemQuantity(product.id) + 1)
+                  }
+                >
+                  +
+                </Button>
+              </Box>
+            ) : (
+              <Button
+                variant="contained"
+                sx={{ backgroundColor: "#008CBA", color: "white" }}
+                onClick={handleAddToCart}
+              >
+                Add to Cart
+              </Button>
+            )}
+          </Grid>
+        </Grid>
       )}
     </Container>
   );

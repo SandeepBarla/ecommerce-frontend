@@ -1,7 +1,5 @@
 import {
-  Alert,
   Box,
-  Button,
   Card,
   CardContent,
   CardMedia,
@@ -9,88 +7,32 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getCart, upsertCartItem } from "../api/cart"; // ✅ Correct import
 import { fetchProducts } from "../api/products"; // ✅ Correct import
-import { AuthContext } from "../context/AuthContext";
-import { CartResponse } from "../types/cart/CartResponse";
 import { ProductResponse } from "../types/product/ProductResponse";
 
 const Products = () => {
   const [products, setProducts] = useState<ProductResponse[]>([]);
-  const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [authBanner, setAuthBanner] = useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const authContext = useContext(AuthContext);
-  const { token, user } = authContext || {}; // ✅ Handle missing context
-
-  // ✅ Fetch Products and Cart Data
-  const fetchProductsAndCart = useCallback(async () => {
+  // ✅ Fetch Products
+  const fetchProductsData = useCallback(async () => {
     try {
       const productData = await fetchProducts();
       setProducts(productData);
-      if (token && user) {
-        const cartData = await getCart(user.id);
-        setCart(cartData);
-      }
     } catch (err) {
       console.error("Error fetching products:", err);
       setError("Failed to fetch products. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [token, user]);
+  }, []);
 
   useEffect(() => {
-    fetchProductsAndCart();
-  }, [fetchProductsAndCart]);
-
-  // ✅ Handle Adding to Cart
-  const handleAddToCart = async (productId: number) => {
-    if (!token || !user) {
-      setAuthBanner(true);
-      return;
-    }
-
-    try {
-      await upsertCartItem(user.id, productId, 1);
-      const updatedCart = await getCart(user.id);
-      setCart(updatedCart);
-      setSuccessMessage("Item added to cart!");
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-    }
-  };
-
-  // ✅ Handle Updating Cart Quantity
-  const handleUpdateQuantity = async (
-    productId: number,
-    newQuantity: number
-  ) => {
-    if (!user) return;
-    try {
-      await upsertCartItem(user.id, productId, newQuantity);
-      const updatedCart = await getCart(user.id);
-      setCart(updatedCart);
-      setSuccessMessage(
-        newQuantity === 0 ? "Item removed from cart" : "Cart updated!"
-      );
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error) {
-      console.error("Error updating cart:", error);
-    }
-  };
-
-  const isInCart = (productId: number) =>
-    cart?.cartItems.some((item) => item.product.id === productId) ?? false;
-  const getCartItemQuantity = (productId: number) =>
-    cart?.cartItems.find((item) => item.product.id === productId)?.quantity ||
-    0;
+    fetchProductsData();
+  }, [fetchProductsData]);
 
   if (loading) {
     return (
@@ -110,32 +52,6 @@ const Products = () => {
 
   return (
     <Container sx={{ padding: "40px" }}>
-      {authBanner && (
-        <Alert
-          severity="warning"
-          action={
-            <Box>
-              <Button component={Link} to="/login" sx={{ marginRight: "10px" }}>
-                Login
-              </Button>
-              <Button component={Link} to="/register" variant="outlined">
-                Register
-              </Button>
-            </Box>
-          }
-          onClose={() => setAuthBanner(false)}
-          sx={{ marginBottom: "20px" }}
-        >
-          Please login or register to add items to the cart.
-        </Alert>
-      )}
-
-      {successMessage && (
-        <Alert severity="success" sx={{ marginBottom: "20px" }}>
-          {successMessage}
-        </Alert>
-      )}
-
       <Typography
         variant="h4"
         fontWeight="bold"
@@ -147,76 +63,80 @@ const Products = () => {
       <Grid container spacing={4}>
         {products.map((product) => (
           <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
-            <Card sx={{ maxWidth: 345, boxShadow: 3, borderRadius: "10px" }}>
-              <CardMedia
-                component="img"
-                height="200"
-                image={product.imageUrl}
-                alt={product.name}
-              />
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold">
-                  {product.name}
-                </Typography>
-                <Typography variant="h6" color="primary">
-                  ₹{product.price}
-                </Typography>
-
-                {/* View Details Button */}
-                <Button
-                  variant="outlined"
-                  component={Link}
-                  to={`/products/${product.id}`}
-                  sx={{ mt: 1, width: "100%" }}
+            <Box
+              component={Link}
+              to={`/products/${product.id}`}
+              sx={{
+                textDecoration: "none",
+                color: "inherit",
+                transition: "transform 0.3s ease-in-out",
+                "&:hover": {
+                  transform: "scale(1.05)",
+                  boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
+                },
+              }}
+            >
+              <Card
+                component={Link}
+                to={`/products/${product.id}`}
+                sx={{
+                  maxWidth: 300,
+                  height: "100%", // ✅ Ensure all cards have equal height
+                  borderRadius: "10px",
+                  overflow: "hidden", // Ensures image scaling doesn't overflow
+                  display: "flex",
+                  flexDirection: "column", // Ensures uniform layout
+                  justifyContent: "space-between", // Keeps content aligned
+                  textDecoration: "none",
+                  backgroundColor: "white",
+                  transition:
+                    "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+                  boxShadow: "0px 4px 10px rgba(0,0,0,0.1)", // Default shadow
+                  "&:hover": {
+                    transform: "scale(1.05)", // Slight zoom effect
+                    boxShadow: "0px 10px 20px rgba(0,0,0,0.3)", // Enhanced shadow effect
+                    cursor: "pointer",
+                  },
+                }}
+              >
+                {/* ✅ Image Container with Fixed Height */}
+                <Box
+                  sx={{
+                    height: 300, // ✅ Fix image container height
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden", // Prevents overflow while maintaining aspect ratio
+                    backgroundColor: "#f9f9f9",
+                  }}
                 >
-                  View Details
-                </Button>
-
-                {isInCart(product.id) ? (
-                  <Box
+                  <CardMedia
+                    component="img"
+                    image={product.imageUrl}
+                    alt={product.name}
                     sx={{
-                      marginTop: "10px",
-                      display: "flex",
-                      alignItems: "center",
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain", // ✅ Ensures full image is shown without cropping
+                      transition: "transform 0.3s ease-in-out",
+                      "&:hover": {
+                        transform: "scale(1.05)",
+                      },
                     }}
-                  >
-                    <Button
-                      variant="outlined"
-                      onClick={() =>
-                        handleUpdateQuantity(
-                          product.id,
-                          getCartItemQuantity(product.id) + 1
-                        )
-                      }
-                    >
-                      +
-                    </Button>
-                    <Typography sx={{ mx: 2 }}>
-                      {getCartItemQuantity(product.id)}
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      onClick={() =>
-                        handleUpdateQuantity(
-                          product.id,
-                          getCartItemQuantity(product.id) - 1
-                        )
-                      }
-                    >
-                      -
-                    </Button>
-                  </Box>
-                ) : (
-                  <Button
-                    variant="contained"
-                    onClick={() => handleAddToCart(product.id)}
-                    sx={{ mt: 1, width: "100%" }}
-                  >
-                    Add to Cart
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+                  />
+                </Box>
+
+                {/* ✅ Card Content - Product Details */}
+                <CardContent sx={{ textAlign: "center", flexGrow: 1 }}>
+                  <Typography variant="h6" fontWeight="bold">
+                    {product.name}
+                  </Typography>
+                  <Typography variant="h6" color="primary">
+                    ${product.price.toFixed(2)}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
           </Grid>
         ))}
       </Grid>

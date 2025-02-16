@@ -1,23 +1,36 @@
-import MenuIcon from "@mui/icons-material/Menu"; // ✅ Mobile Menu Icon
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import CloseIcon from "@mui/icons-material/Close";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
+import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
+import MenuIcon from "@mui/icons-material/Menu";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import {
   AppBar,
   Box,
   Button,
+  Drawer,
   IconButton,
-  Menu,
-  MenuItem,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
   Toolbar,
   Typography,
 } from "@mui/material";
 import { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 
 const Navbar = () => {
   const authContext = useContext(AuthContext);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
 
-  // ✅ Ensure `authContext` always exists before usage
   if (!authContext) {
     return (
       <AppBar
@@ -36,135 +49,200 @@ const Navbar = () => {
   const { user, logout } = authContext;
   const isAdmin = user?.role === "Admin";
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+  // ✅ Button Styling (Highlight active page & hover effect)
+  const getButtonStyles = (path: string) => ({
+    color: location.pathname === path ? "#FFD700" : "white", // Highlight active page
+    fontWeight: location.pathname === path ? "bold" : "normal",
+    backgroundColor: "transparent",
+    "&:hover": {
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+    },
+  });
+
+  // ✅ Handle Mobile Drawer
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  // ✅ Mobile Menu Items
+  const menuItems = [
+    { text: "Products", icon: <StorefrontIcon />, path: "/products" },
+    ...(user
+      ? [
+          { text: "Cart", icon: <ShoppingCartIcon />, path: "/cart" },
+          { text: "Favourites", icon: <FavoriteIcon />, path: "/favourites" },
+          { text: "Account", icon: <AccountCircleIcon />, path: "/account" },
+        ]
+      : [
+          { text: "Login", icon: <LoginIcon />, path: "/login" },
+          { text: "Register", icon: <HowToRegIcon />, path: "/register" },
+        ]),
+    ...(isAdmin
+      ? [
+          {
+            text: "Admin Dashboard",
+            icon: <AdminPanelSettingsIcon />,
+            path: "/admin",
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <AppBar
-      position="static"
-      sx={{ backgroundColor: "#8B0000", padding: "10px" }}
-    >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* ✅ Brand Name */}
-        <Typography
-          variant="h5"
-          component={Link}
-          to="/"
-          sx={{
-            textDecoration: "none",
-            color: "white",
-            fontWeight: "bold",
-            fontFamily: "'Playfair Display', serif",
-          }}
-        >
-          Sakhya
-        </Typography>
+    <>
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "#8B0000", padding: "10px" }}
+      >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          {/* ✅ Mobile Menu Icon - Moved to Left */}
+          <Box sx={{ display: { xs: "block", md: "none" } }}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={handleDrawerToggle}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Box>
 
-        {/* ✅ Desktop Navigation Links */}
-        <Box sx={{ display: { xs: "none", md: "flex" } }}>
-          <Button color="inherit" component={Link} to="/products">
-            Products
-          </Button>
-          <Button color="inherit" component={Link} to="/cart">
-            Cart
-          </Button>
-          <Button color="inherit" component={Link} to="/orders">
-            Orders
-          </Button>
-          {!user ? (
-            <>
-              <Button color="inherit" component={Link} to="/login">
-                Login
+          {/* ✅ Brand Name - Centered & Clickable in Mobile */}
+          <Typography
+            variant="h5"
+            component={Link}
+            to="/"
+            sx={{
+              textDecoration: "none",
+              color: "white",
+              fontWeight: "bold",
+              fontFamily: "'Playfair Display', serif",
+              flexGrow: 1, // ✅ Centers text in Mobile
+              textAlign: { xs: "center", md: "left" }, // ✅ Centers only in Mobile
+            }}
+          >
+            Sakhya
+          </Typography>
+
+          {/* ✅ Desktop Navigation Links */}
+          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
+            {menuItems.map(({ text, icon, path }) => (
+              <Button
+                key={text}
+                component={Link}
+                to={path}
+                sx={getButtonStyles(path)}
+              >
+                {icon}
+                <Typography sx={{ marginLeft: "5px" }}>{text}</Typography>
               </Button>
-              <Button color="inherit" component={Link} to="/register">
-                Register
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button color="inherit" onClick={logout}>
+            ))}
+            {user && (
+              <Button onClick={logout} sx={getButtonStyles("/logout")}>
+                <LogoutIcon sx={{ marginRight: "5px" }} />
                 Logout
               </Button>
-            </>
-          )}
-          {/* ✅ Show Admin Dashboard only for Admin users */}
-          {isAdmin && (
-            <Button color="inherit" component={Link} to="/admin">
-              Admin Dashboard
-            </Button>
-          )}
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* ✅ Mobile Full-Screen Drawer */}
+      <Drawer
+        anchor="left"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: "100vw",
+            height: "100vh",
+            background: "linear-gradient(to bottom, #8B0000, #4B0000)", // ✅ Stylish Background
+            color: "white",
+          },
+        }}
+      >
+        {/* ✅ Mobile Menu Header with Close Button */}
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          p={3}
+        >
+          <Typography
+            variant="h5"
+            component={Link}
+            to="/"
+            sx={{
+              textDecoration: "none",
+              color: "white",
+              fontWeight: "bold",
+              fontFamily: "'Playfair Display', serif",
+            }}
+            onClick={handleDrawerToggle} // ✅ Clicking redirects to Home & closes menu
+          >
+            Sakhya
+          </Typography>
+          <IconButton onClick={handleDrawerToggle} sx={{ color: "white" }}>
+            <CloseIcon />
+          </IconButton>
         </Box>
 
-        {/* ✅ Mobile Navigation Menu */}
-        <Box sx={{ display: { xs: "block", md: "none" } }}>
-          <IconButton
-            edge="end"
-            color="inherit"
-            onClick={handleMenuOpen}
-            aria-controls="mobile-menu"
-            aria-haspopup="true"
-          >
-            <MenuIcon />
-          </IconButton>
-          <Menu
-            id="mobile-menu"
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem component={Link} to="/products" onClick={handleMenuClose}>
-              Products
-            </MenuItem>
-            <MenuItem component={Link} to="/cart" onClick={handleMenuClose}>
-              Cart
-            </MenuItem>
-            <MenuItem component={Link} to="/orders" onClick={handleMenuClose}>
-              Orders
-            </MenuItem>
-            {!user ? (
-              <>
-                <MenuItem
-                  component={Link}
-                  to="/login"
-                  onClick={handleMenuClose}
-                >
-                  Login
-                </MenuItem>
-                <MenuItem
-                  component={Link}
-                  to="/register"
-                  onClick={handleMenuClose}
-                >
-                  Register
-                </MenuItem>
-              </>
-            ) : (
-              <>
-                <MenuItem
-                  onClick={() => {
-                    handleMenuClose();
-                    logout(); // ✅ Close menu before logout
-                  }}
-                >
-                  Logout
-                </MenuItem>
-              </>
-            )}
-            {/* ✅ Show Admin Dashboard only for Admin users */}
-            {isAdmin && (
-              <MenuItem component={Link} to="/admin" onClick={handleMenuClose}>
-                Admin Dashboard
-              </MenuItem>
-            )}
-          </Menu>
-        </Box>
-      </Toolbar>
-    </AppBar>
+        {/* ✅ Mobile Menu Items with Elegant Design */}
+        <List sx={{ paddingX: 4 }}>
+          {menuItems.map(({ text, icon, path }) => (
+            <ListItem key={text} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={path}
+                onClick={handleDrawerToggle}
+                sx={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  transition: "0.3s",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: "#FFD700",
+                    color: "#4B0000",
+                    fontWeight: "bold",
+                  },
+                }}
+                selected={location.pathname === path} // ✅ Highlight active page
+              >
+                <ListItemIcon sx={{ color: "white" }}>{icon}</ListItemIcon>
+                <ListItemText primary={text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+
+          {/* ✅ Logout Button - Styled Separately */}
+          {user && (
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  handleDrawerToggle();
+                  logout();
+                }}
+                sx={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  marginTop: "10px",
+                  color: "#FFD700",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: "#FFD700" }}>
+                  <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItemButton>
+            </ListItem>
+          )}
+        </List>
+      </Drawer>
+    </>
   );
 };
 

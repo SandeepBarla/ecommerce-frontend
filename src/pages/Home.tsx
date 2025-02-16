@@ -1,52 +1,86 @@
-import { Box, Button, Typography } from "@mui/material";
-import { useContext } from "react";
+import { Box, Button, Container, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick-theme.css";
+import "slick-carousel/slick/slick.css";
+import { fetchProducts } from "../api/products";
+import { ProductResponse } from "../types/product/ProductResponse";
 
 const Home = () => {
-  const authContext = useContext(AuthContext);
-  const user = authContext?.user;
+  const [products, setProducts] = useState<ProductResponse[]>([]);
+
+  useEffect(() => {
+    document.body.style.overflowX = "hidden"; // ✅ Prevent horizontal scrolling
+    return () => {
+      document.body.style.overflowX = "auto"; // Reset when component unmounts
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const productData = await fetchProducts();
+        setProducts(productData);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // ✅ Slider Settings for Responsiveness
+  const sliderSettings = {
+    dots: false,
+    infinite: true,
+    speed: 800,
+    slidesToShow: 3, // ✅ Default: 3 products at a time
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 2500,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
 
   return (
-    <>
-      {/* Welcome Banner (Now placed right below the Navbar) */}
-      {user && (
-        <Box
-          sx={{
-            width: "100%",
-            backgroundColor: "rgba(139, 0, 0, 0.85)", // Deep red with transparency
-            padding: "12px",
-            textAlign: "center",
-            color: "white",
-            fontSize: "18px",
-            fontWeight: "bold",
-            boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-          }}
-        >
-          🎉 Welcome, {user.fullName}! We’re glad to have you at Sakhya.
-        </Box>
-      )}
-
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundImage:
+          "url('https://static.vecteezy.com/system/resources/previews/044/149/478/non_2x/a-row-of-colorful-fabrics-with-a-beaded-pattern-free-photo.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* ✅ Hero Section */}
       <Box
         sx={{
+          height: { xs: "40vh", md: "40vh" },
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          height: "calc(100vh - 64px)", // Adjusted to fit below navbar
-          textAlign: "center",
-          padding: "20px",
-          backgroundImage:
-            "url('https://static.vecteezy.com/system/resources/previews/044/149/478/non_2x/a-row-of-colorful-fabrics-with-a-beaded-pattern-free-photo.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          color: "white",
           position: "relative",
-          zIndex: 1,
+          overflow: "hidden",
+          textAlign: "center",
+          width: "100vw",
         }}
       >
-        {/* Overlay for better text readability */}
+        {/* Dark Overlay */}
         <Box
           sx={{
             position: "absolute",
@@ -54,47 +88,131 @@ const Home = () => {
             left: 0,
             width: "100%",
             height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay for contrast
-            zIndex: -1,
+            backgroundColor: "rgba(0, 0, 0, 0.5)", // ✅ Ensures text readability
+            zIndex: 1,
           }}
-        ></Box>
+        />
 
-        {/* Brand Slogan */}
-        <Typography
-          variant="h3"
-          fontWeight="bold"
+        {/* Caption */}
+        <Box
           sx={{
-            fontFamily: "'Playfair Display', serif",
-            marginBottom: "10px",
+            position: "relative",
+            zIndex: 2,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+            textAlign: "center",
+            color: "white",
+            padding: "20px",
+            width: "90%",
           }}
         >
-          Elevate Your Style
-        </Typography>
+          <Typography
+            variant="h3"
+            fontWeight="bold"
+            sx={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: { xs: "24px", md: "36px" },
+              marginBottom: "10px",
+            }}
+          >
+            Elevate Your Style
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{ fontSize: { xs: "14px", md: "18px" }, marginBottom: "20px" }}
+          >
+            Discover the finest collection of Traditional & Western Fashion
+          </Typography>
 
-        {/* New Caption */}
-        <Typography variant="h6" sx={{ marginBottom: "20px" }}>
-          Discover the finest collection of Traditional & Western Fashion
-        </Typography>
-
-        {/* Shop Now Button */}
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "#D2042D",
-            fontWeight: "bold",
-            fontSize: "18px",
-            borderRadius: "8px",
-            padding: "12px 24px",
-            boxShadow: "2px 4px 10px rgba(0,0,0,0.2)",
-            "&:hover": { backgroundColor: "#B71C1C" },
-          }}
-          component={Link}
-          to="/products"
-        >
-          Shop Now
-        </Button>
+          {/* Shop Now Button */}
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "#D2042D",
+              fontWeight: "bold",
+              fontSize: { xs: "14px", md: "18px" },
+              borderRadius: "8px",
+              padding: { xs: "8px 16px", md: "12px 24px" },
+              boxShadow: "2px 4px 10px rgba(0,0,0,0.2)",
+              "&:hover": { backgroundColor: "#B71C1C" },
+            }}
+            component={Link}
+            to="/products"
+          >
+            Shop Now
+          </Button>
+        </Box>
       </Box>
-    </>
+
+      {/* ✅ Product Slider */}
+      <Container
+        sx={{
+          textAlign: "center",
+          maxWidth: "100vw",
+          flex: 1, // ✅ Ensures content expands to fit space
+        }}
+      >
+        <Slider {...sliderSettings}>
+          {products.map((product) => (
+            <Box key={product.id} sx={{ padding: "5px" }}>
+              <Box
+                component={Link}
+                to={`/products/${product.id}`}
+                sx={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  transition: "transform 0.3s ease-in-out",
+                  "&:hover": {
+                    transform: "scale(1.05)",
+                    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    textAlign: "center",
+                    backgroundColor: "rgba(255, 255, 255, 0.15)", // ✅ Light transparency
+                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                    transition:
+                      "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                      boxShadow: "0px 10px 20px rgba(0,0,0,0.3)",
+                    },
+                  }}
+                >
+                  {/* Product Image */}
+                  <Box
+                    sx={{
+                      height: { xs: 350, md: 350 },
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          ))}
+        </Slider>
+      </Container>
+    </Box>
   );
 };
 
