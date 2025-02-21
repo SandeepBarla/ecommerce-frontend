@@ -203,3 +203,9 @@
 // };
 
 // export default AdminProductManagement;
+
+const AdminProductManagement = () => {
+  return <div>Manage Products</div>;
+};
+
+export default AdminProductManagement;
