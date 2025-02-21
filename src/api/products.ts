@@ -1,14 +1,15 @@
+import { ProductListResponse } from "../types/product/ProductListResponse";
 import { ProductResponse } from "../types/product/ProductResponse";
 import { ProductUpsertRequest } from "../types/product/ProductUpsertRequest";
 import api from "./api";
 
-// ✅ Fetch All Products
-export const fetchProducts = async (): Promise<ProductResponse[]> => {
-  const response = await api.get<ProductResponse[]>("/products");
+// ✅ Fetch All Products (returns only primaryImageUrl)
+export const fetchProducts = async (): Promise<ProductListResponse[]> => {
+  const response = await api.get<ProductListResponse[]>("/products");
   return response.data;
 };
 
-// ✅ Fetch Product by ID
+// ✅ Fetch Product by ID (returns full media list)
 export const fetchProductById = async (
   id: number
 ): Promise<ProductResponse> => {

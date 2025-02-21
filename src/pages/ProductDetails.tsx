@@ -1,4 +1,7 @@
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder"; // ✅ Add to Favorites Icon
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import PlayCircleIcon from "@mui/icons-material/PlayCircle";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import {
   Alert,
   Box,
@@ -11,11 +14,14 @@ import {
 } from "@mui/material";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getCart, upsertCartItem } from "../api/cart"; // ✅ Import cart-related API
-import { fetchProductById } from "../api/products"; // ✅ Correct API import
+import { getCart, upsertCartItem } from "../api/cart";
+import { fetchProductById } from "../api/products";
 import { AuthContext } from "../context/AuthContext";
 import { CartResponse } from "../types/cart/CartResponse";
-import { ProductResponse } from "../types/product/ProductResponse"; // ✅ Use correct type
+import {
+  ProductMediaResponse,
+  ProductResponse,
+} from "../types/product/ProductResponse";
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,18 +29,26 @@ const ProductDetails = () => {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] =
+    useState<ProductMediaResponse | null>(null);
+  const [isMuted, setIsMuted] = useState<boolean>(true); // ✅ Default muted
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [authBanner, setAuthBanner] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const authContext = useContext(AuthContext);
   const { token, user } = authContext || {};
 
-  // ✅ Fetch Product and Cart Data
   const fetchProductAndCart = useCallback(async () => {
     if (!id) return;
     try {
       const productData = await fetchProductById(Number(id));
       setProduct(productData);
+
+      // ✅ Set default selected media (First Image/Video)
+      if (productData.media.length > 0) {
+        setSelectedMedia(productData.media[0]);
+      }
+
       if (token && user) {
         const cartData = await getCart(user.id);
         setCart(cartData);
@@ -51,13 +65,11 @@ const ProductDetails = () => {
     fetchProductAndCart();
   }, [fetchProductAndCart]);
 
-  // ✅ Handle Adding to Cart
   const handleAddToCart = async () => {
     if (!token || !user) {
       setAuthBanner(true);
       return;
     }
-
     try {
       await upsertCartItem(user.id, product!.id, 1);
       const updatedCart = await getCart(user.id);
@@ -67,6 +79,10 @@ const ProductDetails = () => {
     } catch (error) {
       console.error("Error adding to cart:", error);
     }
+  };
+
+  const toggleMute = () => {
+    setIsMuted((prev) => !prev);
   };
 
   // ✅ Handle Updating Cart Quantity
@@ -130,20 +146,126 @@ const ProductDetails = () => {
 
       {product && (
         <Grid container spacing={4}>
+          {/* ✅ Main Media Display (Fixed Size) */}
           <Grid item xs={12} md={6}>
-            <Box sx={{ maxWidth: "500px", margin: "0 auto" }}>
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                style={{
-                  width: "100%",
-                  borderRadius: "10px",
-                  boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-                }}
-              />
+            <Box
+              sx={{
+                textAlign: "center",
+                position: "relative",
+                width: "100%",
+                maxWidth: "500px",
+                height: "400px", // ✅ Keep media size fixed
+                margin: "0 auto",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "8px",
+                boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+                overflow: "hidden",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              {selectedMedia?.type === "Video" ? (
+                <Box
+                  sx={{ position: "relative", width: "100%", height: "100%" }}
+                >
+                  <video
+                    width="100%"
+                    height="100%"
+                    autoPlay
+                    loop
+                    muted={isMuted}
+                    playsInline
+                    style={{ objectFit: "contain" }} // ✅ No cropping
+                  >
+                    <source src={selectedMedia.mediaUrl} type="video/mp4" />
+                  </video>
+                  {/* ✅ Audio Toggle Button */}
+                  <IconButton
+                    onClick={toggleMute}
+                    sx={{
+                      position: "absolute",
+                      bottom: "10px",
+                      right: "10px",
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      color: "white",
+                      borderRadius: "50%",
+                      "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.7)" },
+                    }}
+                  >
+                    {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+                  </IconButton>
+                </Box>
+              ) : (
+                <img
+                  src={selectedMedia?.mediaUrl}
+                  alt={product.name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                  }}
+                />
+              )}
+            </Box>
+
+            {/* ✅ Thumbnail Previews */}
+            <Box
+              sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2 }}
+            >
+              {product.media.map((media) => (
+                <Box
+                  key={media.orderIndex}
+                  sx={{
+                    width: "60px",
+                    height: "60px",
+                    borderRadius: "6px",
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    position: "relative",
+                    border:
+                      selectedMedia?.mediaUrl === media.mediaUrl
+                        ? "2px solid #008CBA"
+                        : "none",
+                  }}
+                  onClick={() => setSelectedMedia(media)}
+                >
+                  {media.type === "Video" ? (
+                    <Box sx={{ position: "relative" }}>
+                      <video width="100%" height="100%" muted playsInline>
+                        <source src={media.mediaUrl} type="video/mp4" />
+                      </video>
+                      {/* Play Button Overlay */}
+                      <PlayCircleIcon
+                        sx={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          fontSize: 30,
+                          color: "white",
+                          backgroundColor: "rgba(0, 0, 0, 0.5)",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    </Box>
+                  ) : (
+                    <img
+                      src={media.mediaUrl}
+                      alt="Thumbnail"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  )}
+                </Box>
+              ))}
             </Box>
           </Grid>
 
+          {/* ✅ Product Info */}
           <Grid item xs={12} md={6} sx={{ textAlign: "left" }}>
             <Typography variant="h4" fontWeight="bold">
               {product.name}

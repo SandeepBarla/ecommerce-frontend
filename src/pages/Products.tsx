@@ -9,11 +9,11 @@ import {
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchProducts } from "../api/products"; // ✅ Correct import
-import { ProductResponse } from "../types/product/ProductResponse";
+import { fetchProducts } from "../api/products";
+import { ProductListResponse } from "../types/product/ProductListResponse";
 
 const Products = () => {
-  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [products, setProducts] = useState<ProductListResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,47 +77,46 @@ const Products = () => {
               }}
             >
               <Card
-                component={Link}
-                to={`/products/${product.id}`}
                 sx={{
                   maxWidth: 300,
-                  height: "100%", // ✅ Ensure all cards have equal height
+                  height: "100%",
                   borderRadius: "10px",
-                  overflow: "hidden", // Ensures image scaling doesn't overflow
+                  overflow: "hidden",
                   display: "flex",
-                  flexDirection: "column", // Ensures uniform layout
-                  justifyContent: "space-between", // Keeps content aligned
+                  flexDirection: "column",
+                  justifyContent: "space-between",
                   textDecoration: "none",
                   backgroundColor: "white",
                   transition:
                     "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
-                  boxShadow: "0px 4px 10px rgba(0,0,0,0.1)", // Default shadow
+                  boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
                   "&:hover": {
-                    transform: "scale(1.05)", // Slight zoom effect
-                    boxShadow: "0px 10px 20px rgba(0,0,0,0.3)", // Enhanced shadow effect
+                    transform: "scale(1.05)",
+                    boxShadow: "0px 10px 20px rgba(0,0,0,0.3)",
                     cursor: "pointer",
                   },
                 }}
               >
-                {/* ✅ Image Container with Fixed Height */}
+                {/* ✅ Primary Image */}
                 <Box
                   sx={{
-                    height: 300, // ✅ Fix image container height
+                    position: "relative",
+                    height: 300,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    overflow: "hidden", // Prevents overflow while maintaining aspect ratio
+                    overflow: "hidden",
                     backgroundColor: "#f9f9f9",
                   }}
                 >
                   <CardMedia
                     component="img"
-                    image={product.imageUrl}
+                    image={product.primaryImageUrl || "/placeholder.png"}
                     alt={product.name}
                     sx={{
                       width: "100%",
                       height: "100%",
-                      objectFit: "contain", // ✅ Ensures full image is shown without cropping
+                      objectFit: "contain",
                       transition: "transform 0.3s ease-in-out",
                       "&:hover": {
                         transform: "scale(1.05)",

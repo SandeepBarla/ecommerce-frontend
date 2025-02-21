@@ -1,4 +1,4 @@
-import { ProductResponse } from "../product/ProductResponse";
+import { ProductListResponse } from "../product/ProductListResponse";
 
 export interface CartResponse {
   id: number;
@@ -10,6 +10,6 @@ export interface CartResponse {
 export interface CartItemResponse {
   id: number;
   cartId: number;
-  product: ProductResponse;
+  product: ProductListResponse;
   quantity: number;
 }

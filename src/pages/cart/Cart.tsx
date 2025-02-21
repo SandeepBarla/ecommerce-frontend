@@ -16,9 +16,9 @@ import {
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCart, upsertCartItem } from "../../api/cart"; // ✅ Updated import path
-import { AuthContext } from "../../context/AuthContext"; // ✅ Updated import path
-import { CartResponse } from "../../types/cart/CartResponse"; // ✅ Updated import path
+import { getCart, upsertCartItem } from "../../api/cart";
+import { AuthContext } from "../../context/AuthContext";
+import { CartResponse } from "../../types/cart/CartResponse";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -105,11 +105,11 @@ const Cart = () => {
                     <TableRow key={item.id}>
                       <TableCell>
                         <img
-                          src={item.product.imageUrl}
+                          src={item.product.primaryImageUrl} // ✅ Use primary image
                           alt={item.product.name}
-                          width="50"
-                          height="50"
-                          style={{ borderRadius: "5px" }}
+                          width="60"
+                          height="60"
+                          style={{ borderRadius: "5px", objectFit: "contain" }}
                         />
                       </TableCell>
                       <TableCell>{item.product.name}</TableCell>

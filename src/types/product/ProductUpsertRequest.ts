@@ -1,7 +1,13 @@
+export interface ProductMediaRequest {
+  mediaUrl: string;
+  orderIndex: number;
+  type: "Image" | "Video";
+}
+
 export interface ProductUpsertRequest {
   name: string;
   description: string;
   price: number;
-  imageUrl: string;
   stock: number;
+  media: ProductMediaRequest[]; // ✅ Multiple media instead of single imageUrl
 }

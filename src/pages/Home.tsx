@@ -5,10 +5,12 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
 import { fetchProducts } from "../api/products";
-import { ProductResponse } from "../types/product/ProductResponse";
+import { ProductListResponse } from "../types/product/ProductListResponse";
 
 const Home = () => {
-  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [products, setProducts] = useState<ProductListResponse[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     document.body.style.overflowX = "hidden"; // ✅ Prevent horizontal scrolling
@@ -24,6 +26,9 @@ const Home = () => {
         setProducts(productData);
       } catch (error) {
         console.error("Error fetching products:", error);
+        setError("Failed to load products.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -41,15 +46,11 @@ const Home = () => {
     responsive: [
       {
         breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-        },
+        settings: { slidesToShow: 2 },
       },
       {
         breakpoint: 768,
-        settings: {
-          slidesToShow: 1,
-        },
+        settings: { slidesToShow: 1 },
       },
     ],
   };
@@ -155,62 +156,68 @@ const Home = () => {
           flex: 1, // ✅ Ensures content expands to fit space
         }}
       >
-        <Slider {...sliderSettings}>
-          {products.map((product) => (
-            <Box key={product.id} sx={{ padding: "5px" }}>
-              <Box
-                component={Link}
-                to={`/products/${product.id}`}
-                sx={{
-                  textDecoration: "none",
-                  color: "inherit",
-                  transition: "transform 0.3s ease-in-out",
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
-                  },
-                }}
-              >
+        {loading ? (
+          <Typography sx={{ color: "white", mt: 3 }}>Loading...</Typography>
+        ) : error ? (
+          <Typography sx={{ color: "red", mt: 3 }}>{error}</Typography>
+        ) : (
+          <Slider {...sliderSettings}>
+            {products.map((product) => (
+              <Box key={product.id} sx={{ padding: "5px" }}>
                 <Box
+                  component={Link}
+                  to={`/products/${product.id}`}
                   sx={{
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    textAlign: "center",
-                    backgroundColor: "rgba(255, 255, 255, 0.15)", // ✅ Light transparency
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                    transition:
-                      "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+                    textDecoration: "none",
+                    color: "inherit",
+                    transition: "transform 0.3s ease-in-out",
                     "&:hover": {
                       transform: "scale(1.05)",
-                      boxShadow: "0px 10px 20px rgba(0,0,0,0.3)",
+                      boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
                     },
                   }}
                 >
-                  {/* Product Image */}
                   <Box
                     sx={{
-                      height: { xs: 350, md: 350 },
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      borderRadius: "10px",
                       overflow: "hidden",
+                      textAlign: "center",
+                      backgroundColor: "rgba(255, 255, 255, 0.15)", // ✅ Light transparency
+                      boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                      transition:
+                        "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+                      "&:hover": {
+                        transform: "scale(1.05)",
+                        boxShadow: "0px 10px 20px rgba(0,0,0,0.3)",
+                      },
                     }}
                   >
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
+                    {/* Product Image */}
+                    <Box
+                      sx={{
+                        height: { xs: 350, md: 350 },
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
                       }}
-                    />
+                    >
+                      <img
+                        src={product.primaryImageUrl || "/placeholder.png"}
+                        alt={product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </Box>
                   </Box>
                 </Box>
               </Box>
-            </Box>
-          ))}
-        </Slider>
+            ))}
+          </Slider>
+        )}
       </Container>
     </Box>
   );

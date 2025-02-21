@@ -3,6 +3,12 @@ export interface ProductResponse {
   name: string;
   description: string;
   price: number;
-  imageUrl: string;
   stock: number;
+  media: ProductMediaResponse[];
+}
+
+export interface ProductMediaResponse {
+  mediaUrl: string;
+  orderIndex: number;
+  type: "Image" | "Video"; // ✅ String Enum for media type
 }
