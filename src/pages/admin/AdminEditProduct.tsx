@@ -175,8 +175,6 @@
 //   );
 // };
 
-// export default AdminEditProduct;
-
 const AdminEditProduct = () => {
   return <div>Edit Product</div>;
 };
