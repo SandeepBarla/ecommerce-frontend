@@ -9,10 +9,10 @@ import {
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { clearCart, getCart } from "../../api/cart";
-import { placeOrder } from "../../api/orders"; // ✅ Import order API
+import { placeOrder } from "../../api/orders"; // Import order API
 import { AuthContext } from "../../context/AuthContext";
 import { CartItemResponse } from "../../types/cart/CartResponse";
-import { OrderCreateRequest } from "../../types/order/OrderRequest"; // ✅ Import the correct request type
+import { OrderCreateRequest } from "../../types/order/OrderRequest"; // Import the correct request type
 
 const Checkout = () => {
   const [cartItems, setCartItems] = useState<CartItemResponse[]>([]);
@@ -22,9 +22,9 @@ const Checkout = () => {
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const { token, user } = authContext || {}; // ✅ Ensure `authContext` is always accessed safely
+  const { token, user } = authContext || {}; // Ensure `authContext` is always accessed safely
 
-  // ✅ Wrap fetchCart in useCallback (MUST be at the top level)
+  // Wrap fetchCart in useCallback (MUST be at the top level)
   const fetchCart = useCallback(async () => {
     try {
       if (!user?.id) return;
@@ -33,16 +33,16 @@ const Checkout = () => {
     } catch (error) {
       console.error("Error fetching cart:", error);
     }
-  }, [user?.id]); // ✅ Dependency: user.id
+  }, [user?.id]); // Dependency: user.id
 
-  // ✅ useEffect must always be called unconditionally
+  // useEffect must always be called unconditionally
   useEffect(() => {
     if (token && user?.id) {
       fetchCart();
     }
   }, [token, user?.id, fetchCart]);
 
-  // ✅ Move the early return *after* hooks
+  // Move the early return *after* hooks
   if (!authContext) {
     return <Typography color="error">Auth context not available</Typography>;
   }
@@ -84,8 +84,8 @@ const Checkout = () => {
     };
 
     try {
-      await placeOrder(user.id, orderData); // ✅ Pass userId in API URL, not in request body
-      await clearCart(user.id); // ✅ Clear the cart for the specific user
+      await placeOrder(user.id, orderData); // Pass userId in API URL, not in request body
+      await clearCart(user.id); // Clear the cart for the specific user
       setSuccessMessage("Order placed successfully! Redirecting...");
       setTimeout(() => navigate("/orders"), 3000);
     } catch (error) {
