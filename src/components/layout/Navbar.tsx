@@ -70,7 +70,7 @@ const Navbar = () => {
     ...(user
       ? [
           { text: "Cart", icon: <ShoppingCartIcon />, path: "/cart" },
-          { text: "Favourites", icon: <FavoriteIcon />, path: "/favourites" },
+          { text: "Favourites", icon: <FavoriteIcon />, path: "/favorites" },
           { text: "Account", icon: <AccountCircleIcon />, path: "/account" },
         ]
       : [
@@ -133,7 +133,7 @@ const Navbar = () => {
                 </IconButton>
                 <IconButton
                   component={Link}
-                  to="/favourites"
+                  to="/favorites"
                   sx={{ color: "white" }}
                 >
                   <FavoriteIcon />

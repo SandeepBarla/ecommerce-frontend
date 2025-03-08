@@ -131,7 +131,7 @@ const Products = () => {
                     {product.name}
                   </Typography>
                   <Typography variant="h6" color="primary">
-                    ${product.price.toFixed(2)}
+                    ₹{product.price.toFixed(2)}
                   </Typography>
                 </CardContent>
               </Card>

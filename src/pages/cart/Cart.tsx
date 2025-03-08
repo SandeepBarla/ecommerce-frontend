@@ -1,3 +1,4 @@
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import {
   Alert,
   Box,
@@ -44,7 +45,7 @@ const Cart = () => {
   };
 
   const handleUpdateQuantity = async (productId: number, quantity: number) => {
-    if (quantity < 1) return;
+    if (quantity < 0) return;
 
     try {
       await upsertCartItem(user!.id, productId, quantity);
@@ -230,9 +231,24 @@ const Cart = () => {
           </Grid>
         </Grid>
       ) : (
-        <Alert severity="info" sx={{ textAlign: "center", mt: 5 }}>
-          Your cart is empty. Start shopping now!
-        </Alert>
+        // 🎨 Creative Empty Cart Message
+        <Box sx={{ textAlign: "center", mt: 5 }}>
+          <ShoppingCartOutlinedIcon sx={{ fontSize: 80, color: "gray" }} />
+          <Typography variant="h5" sx={{ mt: 2, color: "gray" }}>
+            Oops! Your cart is empty. 😢
+          </Typography>
+          <Typography variant="body1" sx={{ mt: 1, color: "gray" }}>
+            Looks like you haven't added anything yet.
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ mt: 3 }}
+            onClick={() => navigate("/products")}
+          >
+            Start Shopping 🛍️
+          </Button>
+        </Box>
       )}
     </Container>
   );

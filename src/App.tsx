@@ -11,6 +11,7 @@ import AdminUsers from "./pages/admin/AdminUserManagement";
 import AdminUserOrders from "./pages/admin/AdminUserOrderManagement";
 import Cart from "./pages/cart/Cart";
 import Checkout from "./pages/cart/Checkout";
+import Favorites from "./pages/favorites/Favorites";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Orders from "./pages/orders/Orders";
@@ -33,6 +34,7 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/favorites" element={<Favorites />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/products/new" element={<AdminAddProduct />} />

@@ -1,3 +1,4 @@
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
@@ -15,13 +16,17 @@ import {
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getCart, upsertCartItem } from "../api/cart";
+import { fetchCategories } from "../api/categories";
+import { addFavorite, fetchFavorites, removeFavorite } from "../api/favorites";
 import { fetchProductById } from "../api/products";
+import { fetchSizes } from "../api/sizes";
 import { AuthContext } from "../context/AuthContext";
 import { CartResponse } from "../types/cart/CartResponse";
 import {
   ProductMediaResponse,
   ProductResponse,
 } from "../types/product/ProductResponse";
+import { SizeResponse } from "../types/product/SizeResponse";
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,23 +38,48 @@ const ProductDetails = () => {
     useState<ProductMediaResponse | null>(null);
   const [isMuted, setIsMuted] = useState<boolean>(true); // ✅ Default muted
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [sizes, setSizes] = useState<SizeResponse[]>([]); // ✅ Store all sizes
+  const [category, setCategory] = useState<string>("Unknown Category");
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [authBanner, setAuthBanner] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const authContext = useContext(AuthContext);
   const { token, user } = authContext || {};
 
   const fetchProductAndCart = useCallback(async () => {
-    if (!id) return;
     try {
+      if (!id) return;
+
       const productData = await fetchProductById(Number(id));
       setProduct(productData);
+
+      // ✅ Fetch categories (still selecting first one as we have only one)
+      const categories = await fetchCategories();
+      setCategory(
+        categories.length > 0 ? categories[0].name : "Unknown Category"
+      );
+
+      // ✅ Fetch all sizes
+      const sizes = await fetchSizes();
+      setSizes(sizes); // Store all available sizes
+
+      // ✅ Preselect the first available size (if exists)
+      if (sizes.length > 0) {
+        setSelectedSize(sizes[0].name);
+      }
 
       // ✅ Set default selected media (First Image/Video)
       if (productData.media.length > 0) {
         setSelectedMedia(productData.media[0]);
       }
 
+      // ✅ Fetch Cart
       if (token && user) {
+        // ✅ Fetch user favorites
+        const favorites = await fetchFavorites(user.id);
+        setIsFavorite(
+          favorites.some((fav) => fav.productId === productData.id)
+        );
         const cartData = await getCart(user.id);
         setCart(cartData);
       }
@@ -100,6 +130,25 @@ const ProductDetails = () => {
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
       console.error("Error updating cart:", error);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    if (!token || !user) {
+      setAuthBanner(true);
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await removeFavorite(user.id, product!.id);
+        setIsFavorite(false);
+      } else {
+        await addFavorite(user.id, product!.id);
+        setIsFavorite(true);
+      }
+    } catch (error) {
+      console.error("Error updating favorite:", error);
     }
   };
 
@@ -271,10 +320,10 @@ const ProductDetails = () => {
               {product.name}
             </Typography>
             <Typography variant="subtitle1" sx={{ color: "gray", mb: 2 }}>
-              In Category
+              Category: <b>{category}</b>
             </Typography>
             <Typography variant="h3" sx={{ color: "#8B0000", mb: 2 }}>
-              ${product.price.toFixed(2)}
+              ₹{product.price.toFixed(2)}
             </Typography>
 
             {/* Select Size */}
@@ -282,19 +331,21 @@ const ProductDetails = () => {
               Select Size
             </Typography>
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
+              {sizes.map((size) => (
                 <Button
-                  key={size}
-                  variant={selectedSize === size ? "contained" : "outlined"}
-                  onClick={() => setSelectedSize(size)}
+                  key={size.id}
+                  variant={
+                    selectedSize === size.name ? "contained" : "outlined"
+                  }
+                  onClick={() => setSelectedSize(size.name)}
                   sx={{
                     minWidth: "50px",
-                    color: selectedSize === size ? "white" : "black",
+                    color: selectedSize === size.name ? "white" : "black",
                     backgroundColor:
-                      selectedSize === size ? "#008CBA" : "white",
+                      selectedSize === size.name ? "#008CBA" : "white",
                   }}
                 >
-                  {size}
+                  {size.name}
                 </Button>
               ))}
             </Box>
@@ -304,11 +355,16 @@ const ProductDetails = () => {
               {product.description}
             </Typography>
 
-            {/* Add to Favorites */}
+            {/* Favorite Toggle Button */}
             <IconButton
               sx={{ border: "1px solid #008CBA", borderRadius: "50%", mr: 2 }}
+              onClick={toggleFavorite}
             >
-              <FavoriteBorderIcon sx={{ color: "#008CBA" }} />
+              {isFavorite ? (
+                <FavoriteIcon sx={{ color: "#E53935" }} /> // Filled heart ❤️
+              ) : (
+                <FavoriteBorderIcon sx={{ color: "#008CBA" }} /> // Outlined heart 🤍
+              )}
             </IconButton>
 
             {/* Cart Actions */}
