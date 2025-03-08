@@ -183,7 +183,7 @@ const ProductDetails = () => {
             </Box>
           }
         >
-          Please login or register to add items to the cart.
+          Please login or register to add items to the cart/favorites.
         </Alert>
       )}
 
