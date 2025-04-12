@@ -1,0 +1,13 @@
+name: Keep API Warm
+
+on:
+  schedule:
+    - cron: "* * * * *" # Every 1 minute (testing only)
+  workflow_dispatch: # Allow manual run from Actions tab
+
+jobs:
+  ping-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render API to prevent cold start
+        run: curl -s https://ecommerceapi-5ktn.onrender.com/api/products > /dev/null
