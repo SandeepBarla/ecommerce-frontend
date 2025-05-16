@@ -3,12 +3,15 @@ import {
   Button,
   CircularProgress,
   Container,
+  Divider,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
+import { GoogleLogin } from "@react-oauth/google";
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { loginWithGoogle } from "../api/auth"; // ✅ Ensure loginWithGoogle is imported
 import { registerUser } from "../api/users";
 import { AuthContext } from "../context/AuthContext";
 import { UserRegisterRequest } from "../types/user/UserRequest";
@@ -53,6 +56,25 @@ const Register = () => {
       setError("Registration failed. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      if (!credentialResponse.credential) {
+        setError("Google registration failed.");
+        return;
+      }
+
+      const response = await loginWithGoogle(credentialResponse.credential);
+      login(response.token, response.role);
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("role", response.role);
+      localStorage.setItem("userId", response.userId.toString());
+
+      navigate("/");
+    } catch (err) {
+      setError("Google registration failed. Please try again.");
     }
   };
 
@@ -125,6 +147,15 @@ const Register = () => {
             )}
           </Button>
         </form>
+
+        <Divider sx={{ my: 2 }}>or</Divider>
+
+        {/* ✅ Google Sign-up button */}
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => setError("Google login failed")}
+          width="100%"
+        />
 
         <Typography sx={{ mt: 2 }}>
           Already have an account?{" "}

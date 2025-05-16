@@ -3,13 +3,15 @@ import {
   Button,
   CircularProgress,
   Container,
+  Divider,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
+import { GoogleLogin } from "@react-oauth/google";
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../api/auth";
+import { loginUser, loginWithGoogle } from "../api/auth";
 import { AuthContext } from "../context/AuthContext";
 import { UserLoginRequest } from "../types/user/UserRequest";
 
@@ -115,6 +117,34 @@ const Login = () => {
             )}
           </Button>
         </form>
+
+        <Divider sx={{ my: 2 }}>or</Divider>
+
+        <GoogleLogin
+          onSuccess={async (credentialResponse) => {
+            try {
+              if (!credentialResponse.credential) {
+                setError("Google login failed. Try again.");
+                return;
+              }
+
+              const response = await loginWithGoogle(
+                credentialResponse.credential
+              );
+              login(response.token, response.role);
+              localStorage.setItem("token", response.token);
+              localStorage.setItem("role", response.role);
+              localStorage.setItem("userId", response.userId.toString());
+
+              navigate("/");
+            } catch (err) {
+              setError("Google sign-in failed. Please try again.");
+            }
+          }}
+          onError={() => {
+            setError("Google login was unsuccessful. Please try again.");
+          }}
+        />
 
         <Typography sx={{ mt: 2 }}>
           Don't have an account?{" "}
