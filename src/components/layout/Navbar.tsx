@@ -23,13 +23,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useContext, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 
 const Navbar = () => {
   const authContext = useContext(AuthContext);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   if (!authContext) {
     return (
@@ -173,7 +174,13 @@ const Navbar = () => {
               </Button>
             ))}
             {user && (
-              <Button onClick={logout} sx={getButtonStyles("/logout")}>
+              <Button
+                onClick={() => {
+                  logout();
+                  navigate("/"); // ✅ Redirect to home
+                }}
+                sx={getButtonStyles("/logout")}
+              >
                 <LogoutIcon sx={{ marginRight: "5px" }} />
                 Logout
               </Button>
@@ -257,6 +264,7 @@ const Navbar = () => {
                 onClick={() => {
                   handleDrawerToggle();
                   logout();
+                  navigate("/"); // ✅ Redirect after logout
                 }}
                 sx={{
                   padding: "12px",
