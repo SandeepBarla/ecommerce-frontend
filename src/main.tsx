@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { AuthProvider } from "./context/AuthProvider";
 import { LoadingProvider } from "./context/LoadingContext"; // ✅ Import loading provider
+import "./index.css";
 
 // ✅ Load Google Client ID from .env
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;

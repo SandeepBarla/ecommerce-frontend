@@ -49,12 +49,70 @@ const Favorites = () => {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <Typography textAlign="center" sx={{ marginTop: "20px" }}>
-        Loading favorites...
-      </Typography>
+      <Container sx={{ padding: "40px" }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{ marginBottom: "20px", textAlign: "center" }}
+        >
+          My Favorites ❤️
+        </Typography>
+
+        <Grid container spacing={4}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
+              <Card
+                sx={{
+                  maxWidth: 300,
+                  height: "100%",
+                  borderRadius: "10px",
+                  backgroundColor: "white",
+                  boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                }}
+              >
+                {/* ⬜ Image Skeleton */}
+                <Box
+                  sx={{
+                    height: 300,
+                    background:
+                      "linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%)",
+                    backgroundSize: "200% 100%",
+                    animation: "pulse 1.2s infinite ease-in-out",
+                  }}
+                />
+
+                {/* ⬜ Text Skeletons */}
+                <CardContent sx={{ textAlign: "center" }}>
+                  <Box
+                    sx={{
+                      width: "70%",
+                      height: 20,
+                      margin: "10px auto",
+                      backgroundColor: "#e0e0e0",
+                      borderRadius: "4px",
+                      animation: "pulse 1.2s infinite ease-in-out",
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      width: "50%",
+                      height: 20,
+                      margin: "10px auto",
+                      backgroundColor: "#e0e0e0",
+                      borderRadius: "4px",
+                      animation: "pulse 1.2s infinite ease-in-out",
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
     );
+  }
 
   if (error)
     return (

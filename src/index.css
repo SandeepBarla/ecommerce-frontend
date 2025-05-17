@@ -1,9 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap");
 
 :root {
-  font-family: 'Playfair Display', serif;
-  background-color: #FAF3E0; /* Elegant beige */
-  color: #4A2C2A;
+  font-family: "Playfair Display", serif;
+  color: #4a2c2a;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -11,6 +10,7 @@
 
 /* Ensure full-width layout */
 body {
+  background-color: #faf3e0; /* Elegant beige */
   margin: 0;
   padding: 0;
   min-width: 100vw;
@@ -23,7 +23,7 @@ body {
 nav {
   width: 100%;
   padding: 10px 20px;
-  background-color: #8B0000;
+  background-color: #8b0000;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -33,17 +33,19 @@ nav {
 a {
   text-decoration: none;
   font-weight: 600;
-  color: #8B0000;
+  color: #8b0000;
   transition: color 0.3s ease-in-out;
 }
 
 a:hover {
-  color: #D2042D;
+  color: #d2042d;
 }
 
 /* Headings */
-h1, h2, h3 {
-  font-family: 'Playfair Display', serif;
+h1,
+h2,
+h3 {
+  font-family: "Playfair Display", serif;
   font-weight: 700;
   text-align: center;
 }
@@ -51,20 +53,20 @@ h1, h2, h3 {
 /* Buttons */
 button {
   border-radius: 8px;
-  border: 2px solid #8B0000;
+  border: 2px solid #8b0000;
   padding: 0.7em 1.5em;
   font-size: 1.1em;
   font-weight: 600;
-  font-family: 'Poppins', sans-serif;
-  background-color: #8B0000;
+  font-family: "Poppins", sans-serif;
+  background-color: #8b0000;
   color: white;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
 }
 
 button:hover {
-  background-color: #D2042D;
-  border-color: #D2042D;
+  background-color: #d2042d;
+  border-color: #d2042d;
 }
 
 /* Responsive Design */
@@ -75,7 +77,7 @@ button:hover {
   }
 
   body {
-    padding: 10px;
+    padding: 0;
   }
 
   h1 {
@@ -92,4 +94,20 @@ button:hover {
     font-size: 1em;
     padding: 0.5em 1em;
   }
+}
+/* 💫 Shimmer effect for skeleton loading */
+@keyframes pulse {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: pulse 1.2s infinite ease-in-out;
+  border-radius: 10px;
 }

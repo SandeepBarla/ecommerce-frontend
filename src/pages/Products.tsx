@@ -36,9 +36,61 @@ const Products = () => {
 
   if (loading) {
     return (
-      <Typography textAlign="center" sx={{ marginTop: "20px" }}>
-        Loading products...
-      </Typography>
+      <Container sx={{ padding: "40px" }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{ marginBottom: "20px", textAlign: "center" }}
+        >
+          Our Collection
+        </Typography>
+
+        <Grid container spacing={4}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
+              <Card
+                sx={{
+                  maxWidth: 300,
+                  height: "100%",
+                  borderRadius: "10px",
+                  backgroundColor: "white",
+                  boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                }}
+              >
+                {/* 🖼 Image Skeleton */}
+                <Box
+                  className="skeleton"
+                  sx={{
+                    height: 300,
+                    width: "100%",
+                    borderRadius: "0px",
+                  }}
+                />
+
+                {/* 📝 Text Skeletons */}
+                <CardContent sx={{ textAlign: "center" }}>
+                  <Box
+                    className="skeleton"
+                    sx={{
+                      width: "70%",
+                      height: 20,
+                      margin: "10px auto",
+                    }}
+                  />
+                  <Box
+                    className="skeleton"
+                    sx={{
+                      width: "50%",
+                      height: 20,
+                      margin: "10px auto",
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
     );
   }
 
