@@ -1,4 +1,11 @@
-import { Box, Button, Container, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Slider from "react-slick";
@@ -157,7 +164,41 @@ const Home = () => {
         }}
       >
         {loading ? (
-          <Typography sx={{ color: "white", mt: 3 }}>Loading...</Typography>
+          <Slider {...sliderSettings}>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Box key={index} sx={{ padding: "5px" }}>
+                <Box
+                  sx={{
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    textAlign: "center",
+                    backgroundColor: "rgba(255, 255, 255, 0.15)",
+                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                    height: 350,
+                    position: "relative", // ✅ Needed to center the loader
+                  }}
+                >
+                  <Skeleton
+                    variant="rectangular"
+                    width="100%"
+                    height="100%"
+                    animation={false} // ❌ Turn off shimmer, we're using real loader
+                    sx={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                  />
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <CircularProgress size={40} sx={{ color: "#fff" }} />
+                  </Box>
+                </Box>
+              </Box>
+            ))}
+          </Slider>
         ) : error ? (
           <Typography sx={{ color: "red", mt: 3 }}>{error}</Typography>
         ) : (

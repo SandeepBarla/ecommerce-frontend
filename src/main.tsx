@@ -3,17 +3,20 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { AuthProvider } from "./context/AuthProvider";
+import { LoadingProvider } from "./context/LoadingContext"; // ✅ Import loading provider
 
-// ✅ Use environment variable for client ID
+// ✅ Load Google Client ID from .env
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {/* ✅ Provide Google context for Sign-In */}
     <GoogleOAuthProvider clientId={googleClientId}>
-      {/* ✅ Provide auth context */}
       <AuthProvider>
-        <App />
+        <LoadingProvider>
+          {" "}
+          {/* ✅ Global loader wrapper */}
+          <App />
+        </LoadingProvider>
       </AuthProvider>
     </GoogleOAuthProvider>
   </React.StrictMode>

@@ -13,11 +13,13 @@ import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser, loginWithGoogle } from "../api/auth";
 import { AuthContext } from "../context/AuthContext";
+import { useLoading } from "../context/LoadingContext"; // ✅ Import global loading context
 import { UserLoginRequest } from "../types/user/UserRequest";
 
 const Login = () => {
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
+  const { setLoading } = useLoading(); // ✅ Global loading control
 
   const [formData, setFormData] = useState<UserLoginRequest>({
     email: "",
@@ -25,7 +27,7 @@ const Login = () => {
   });
 
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [localLoading, setLocalLoading] = useState<boolean>(false);
 
   if (!authContext) {
     return <Typography color="error">Auth context not available</Typography>;
@@ -40,7 +42,8 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setLocalLoading(true);
+    setLoading(true); // ✅ Show full-screen loader
 
     try {
       const response = await loginUser(formData);
@@ -53,7 +56,33 @@ const Login = () => {
     } catch (err) {
       setError("Invalid email or password. Please try again.");
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
+      setLoading(false); // ✅ Hide loader
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setError(null);
+    setLoading(true); // ✅ Full-screen loader during Google login
+
+    try {
+      if (!credentialResponse.credential) {
+        setError("Google login failed. Try again.");
+        setLoading(false);
+        return;
+      }
+
+      const response = await loginWithGoogle(credentialResponse.credential);
+      login(response.token, response.role);
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("role", response.role);
+      localStorage.setItem("userId", response.userId.toString());
+
+      navigate("/");
+    } catch (err) {
+      setError("Google sign-in failed. Please try again.");
+    } finally {
+      setLoading(false); // ✅ Always hide loader
     }
   };
 
@@ -108,9 +137,9 @@ const Login = () => {
             color="primary"
             fullWidth
             sx={{ mt: 2 }}
-            disabled={loading}
+            disabled={localLoading}
           >
-            {loading ? (
+            {localLoading ? (
               <CircularProgress size={24} sx={{ color: "white" }} />
             ) : (
               "Login"
@@ -121,29 +150,11 @@ const Login = () => {
         <Divider sx={{ my: 2 }}>or</Divider>
 
         <GoogleLogin
-          onSuccess={async (credentialResponse) => {
-            try {
-              if (!credentialResponse.credential) {
-                setError("Google login failed. Try again.");
-                return;
-              }
-
-              const response = await loginWithGoogle(
-                credentialResponse.credential
-              );
-              login(response.token, response.role);
-              localStorage.setItem("token", response.token);
-              localStorage.setItem("role", response.role);
-              localStorage.setItem("userId", response.userId.toString());
-
-              navigate("/");
-            } catch (err) {
-              setError("Google sign-in failed. Please try again.");
-            }
-          }}
+          onSuccess={handleGoogleSuccess}
           onError={() => {
             setError("Google login was unsuccessful. Please try again.");
           }}
+          width="100%"
         />
 
         <Typography sx={{ mt: 2 }}>

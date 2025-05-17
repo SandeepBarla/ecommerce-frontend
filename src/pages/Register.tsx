@@ -11,14 +11,16 @@ import {
 import { GoogleLogin } from "@react-oauth/google";
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginWithGoogle } from "../api/auth"; // ✅ Ensure loginWithGoogle is imported
+import { loginWithGoogle } from "../api/auth";
 import { registerUser } from "../api/users";
 import { AuthContext } from "../context/AuthContext";
+import { useLoading } from "../context/LoadingContext"; // ✅ Import loading context
 import { UserRegisterRequest } from "../types/user/UserRequest";
 
 const Register = () => {
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
+  const { setLoading } = useLoading(); // ✅ Use loading context
 
   const [formData, setFormData] = useState<UserRegisterRequest>({
     fullName: "",
@@ -27,7 +29,7 @@ const Register = () => {
   });
 
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [localLoading, setLocalLoading] = useState<boolean>(false); // For button spinner
 
   if (!authContext) {
     return <Typography color="error">Auth context not available</Typography>;
@@ -42,7 +44,8 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setLocalLoading(true);
+    setLoading(true); // ✅ Global full-screen loader on
 
     try {
       const response = await registerUser(formData);
@@ -55,14 +58,19 @@ const Register = () => {
     } catch (err) {
       setError("Registration failed. Please try again.");
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
+      setLoading(false); // ✅ Turn off global loader
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
+    setLoading(true); // ✅ Show loader during Google login
+    setError(null);
+
     try {
       if (!credentialResponse.credential) {
         setError("Google registration failed.");
+        setLoading(false);
         return;
       }
 
@@ -75,6 +83,8 @@ const Register = () => {
       navigate("/");
     } catch (err) {
       setError("Google registration failed. Please try again.");
+    } finally {
+      setLoading(false); // ✅ Always hide loader
     }
   };
 
@@ -138,9 +148,9 @@ const Register = () => {
             color="primary"
             fullWidth
             sx={{ mt: 2 }}
-            disabled={loading}
+            disabled={localLoading}
           >
-            {loading ? (
+            {localLoading ? (
               <CircularProgress size={24} sx={{ color: "white" }} />
             ) : (
               "Register"
