@@ -10,8 +10,11 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import {
   AppBar,
+  Backdrop,
   Box,
   Button,
+  CircularProgress,
+  Dialog,
   Drawer,
   IconButton,
   List,
@@ -31,6 +34,8 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (!authContext) {
     return (
@@ -175,10 +180,7 @@ const Navbar = () => {
             ))}
             {user && (
               <Button
-                onClick={() => {
-                  logout();
-                  navigate("/"); // ✅ Redirect to home
-                }}
+                onClick={() => setConfirmLogoutOpen(true)}
                 sx={getButtonStyles("/logout")}
               >
                 <LogoutIcon sx={{ marginRight: "5px" }} />
@@ -263,8 +265,7 @@ const Navbar = () => {
               <ListItemButton
                 onClick={() => {
                   handleDrawerToggle();
-                  logout();
-                  navigate("/"); // ✅ Redirect after logout
+                  setConfirmLogoutOpen(true);
                 }}
                 sx={{
                   padding: "12px",
@@ -285,6 +286,42 @@ const Navbar = () => {
           )}
         </List>
       </Drawer>
+
+      <Dialog
+        open={confirmLogoutOpen}
+        onClose={() => setConfirmLogoutOpen(false)}
+      >
+        <Box p={3}>
+          <Typography variant="h6" gutterBottom>
+            Are you sure you want to logout?
+          </Typography>
+          <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
+            <Button onClick={() => setConfirmLogoutOpen(false)} color="inherit">
+              No
+            </Button>
+            <Button
+              onClick={() => {
+                setConfirmLogoutOpen(false);
+                setIsLoggingOut(true);
+
+                // Simulate delay (for demo) or just perform logout immediately
+                setTimeout(() => {
+                  logout();
+                  navigate("/");
+                  setIsLoggingOut(false); // optional: hide even if navigate unmounts it
+                }, 1000); // feel free to remove delay in prod
+              }}
+              variant="contained"
+              color="primary"
+            >
+              Yes
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
+      <Backdrop open={isLoggingOut} sx={{ color: "#fff", zIndex: 9999 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </>
   );
 };
