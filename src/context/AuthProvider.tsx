@@ -9,9 +9,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
   const [role, setRole] = useState<string | null>(localStorage.getItem("role"));
   const [user, setUser] = useState<UserResponse | null>(null);
+  const [userLoading, setUserLoading] = useState<boolean>(!!token);
 
   // ✅ Wrap fetchUserProfile in useCallback to avoid unnecessary re-renders
   const fetchUserProfile = useCallback(async () => {
+    setUserLoading(true);
     try {
       const userId = localStorage.getItem("userId"); // Retrieve user ID
       if (!userId) return; // Prevent making an invalid request
@@ -21,6 +23,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error fetching user profile:", error);
       logout(); // ✅ Logout if fetching profile fails (invalid token)
+    } finally {
+      setUserLoading(false);
     }
   }, []); // ✅ No external dependencies
 
@@ -28,6 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       setAuthToken(token);
       fetchUserProfile();
+    } else {
+      setUserLoading(false);
     }
   }, [token, fetchUserProfile]); // ✅ Added fetchUserProfile as a dependency
 
@@ -54,7 +60,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, role, user, login, logout }}>
+    <AuthContext.Provider
+      value={{ token, role, user, login, logout, userLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,0 +1,43 @@
+/* Spinner styles */
+.cart-btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #ccc;
+  border-top: 2.5px solid #008cba;
+  border-radius: 50%;
+  animation: cart-btn-spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes cart-btn-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Cart total price override to match Total Amount font */
+.cart-total-price {
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #111;
+  font-family: "Poppins", "Inter", Arial, sans-serif !important;
+  letter-spacing: 0.01em;
+}
+
+/* Skeleton styles (if not already global) */
+.skeleton {
+  background: linear-gradient(90deg, #ececec 25%, #f5f5f5 50%, #ececec 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.2s infinite linear;
+}
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

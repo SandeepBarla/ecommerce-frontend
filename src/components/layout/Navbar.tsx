@@ -52,8 +52,73 @@ const Navbar = () => {
     );
   }
 
-  const { user, logout } = authContext;
+  const { user, logout, userLoading } = authContext;
   const isAdmin = user?.role === "Admin";
+
+  if (userLoading) {
+    // Always show header, but show skeleton/neutral icons for user-dependent actions
+    return (
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "#8B0000", padding: "10px" }}
+      >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          {/* Mobile Menu Icon & Brand Name - Aligned to Left */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: { xs: "block", md: "none" } }}>
+              <IconButton edge="start" color="inherit">
+                <MenuIcon />
+              </IconButton>
+            </Box>
+            <Typography
+              variant="h5"
+              component={Link}
+              to="/"
+              sx={{
+                textDecoration: "none",
+                color: "white",
+                fontWeight: "bold",
+                fontFamily: "'Playfair Display', serif",
+              }}
+            >
+              Sakhya
+            </Typography>
+          </Box>
+          {/* Mobile Icons (Skeleton) */}
+          <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
+            <IconButton disabled>
+              <ShoppingCartIcon sx={{ color: "grey.400" }} />
+            </IconButton>
+            <IconButton disabled>
+              <FavoriteIcon sx={{ color: "grey.400" }} />
+            </IconButton>
+            <IconButton disabled>
+              <AccountCircleIcon sx={{ color: "grey.400" }} />
+            </IconButton>
+          </Box>
+          {/* Desktop Navigation Links (Skeleton) */}
+          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
+            <Button component={Link} to="/products" sx={{ color: "white" }}>
+              <StorefrontIcon />
+              <Typography sx={{ marginLeft: "5px" }}>Products</Typography>
+            </Button>
+            <Button disabled sx={{ color: "grey.400" }}>
+              <ShoppingCartIcon />
+              <Typography sx={{ marginLeft: "5px" }}>Cart</Typography>
+            </Button>
+            <Button disabled sx={{ color: "grey.400" }}>
+              <FavoriteIcon />
+              <Typography sx={{ marginLeft: "5px" }}>Favourites</Typography>
+            </Button>
+            <Button disabled sx={{ color: "grey.400" }}>
+              <AccountCircleIcon />
+              <Typography sx={{ marginLeft: "5px" }}>Account</Typography>
+            </Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
+    );
+  }
 
   // ✅ Button Styling (Highlight active page & hover effect)
   const getButtonStyles = (path: string) => ({
