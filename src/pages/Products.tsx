@@ -1,3 +1,4 @@
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import {
   Box,
@@ -8,15 +9,30 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import Alert from "@mui/material/Alert";
+import IconButton from "@mui/material/IconButton";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { addFavorite, fetchFavorites, removeFavorite } from "../api/favorites";
 import { fetchProducts } from "../api/products";
+import { AuthContext } from "../context/AuthContext";
 import { ProductListResponse } from "../types/product/ProductListResponse";
 
 const Products = () => {
   const [products, setProducts] = useState<ProductListResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const authContext = useContext(AuthContext);
+  const { user, token } = authContext || {};
+  const [favorites, setFavorites] = useState<number[]>([]); // productIds
+  const [favoritesLoading, setFavoritesLoading] = useState<boolean>(!!user);
+  const [favoriteAnimating, setFavoriteAnimating] = useState<{
+    [id: number]: boolean;
+  }>({});
+  const [favoriteLoading, setFavoriteLoading] = useState<{
+    [id: number]: boolean;
+  }>({});
+  const [authAlert, setAuthAlert] = useState(false);
 
   // ✅ Fetch Products
   const fetchProductsData = useCallback(async () => {
@@ -35,7 +51,52 @@ const Products = () => {
     fetchProductsData();
   }, [fetchProductsData]);
 
-  if (loading) {
+  useEffect(() => {
+    const fetchUserFavorites = async () => {
+      if (!user) {
+        setFavorites([]);
+        setFavoritesLoading(false);
+        return;
+      }
+      setFavoritesLoading(true);
+      try {
+        const favs = await fetchFavorites(user.id);
+        setFavorites(favs.map((f) => f.productId));
+      } catch {
+        /* ignore */
+      }
+      setFavoritesLoading(false);
+    };
+    fetchUserFavorites();
+  }, [user]);
+
+  const handleToggleFavorite = async (productId: number) => {
+    if (!user || !token) {
+      setAuthAlert(true);
+      setTimeout(() => setAuthAlert(false), 2000);
+      return;
+    }
+    setFavoriteLoading((fl) => ({ ...fl, [productId]: true }));
+    setFavoriteAnimating((fa) => ({ ...fa, [productId]: true }));
+    setTimeout(
+      () => setFavoriteAnimating((fa) => ({ ...fa, [productId]: false })),
+      400
+    );
+    try {
+      if (favorites.includes(productId)) {
+        await removeFavorite(user.id, productId);
+        setFavorites((favs) => favs.filter((id) => id !== productId));
+      } else {
+        await addFavorite(user.id, productId);
+        setFavorites((favs) => [...favs, productId]);
+      }
+    } catch {
+      /* ignore */
+    }
+    setFavoriteLoading((fl) => ({ ...fl, [productId]: false }));
+  };
+
+  if (loading || favoritesLoading) {
     return (
       <Container sx={{ px: { xs: 1, md: 5 }, pt: 3, pb: 5 }}>
         <Typography
@@ -102,122 +163,147 @@ const Products = () => {
       >
         Our Collection
       </Typography>
+      {authAlert && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          Please login to add products to your favorites.
+        </Alert>
+      )}
       <Grid container spacing={2}>
         {products.map((product) => (
           <Grid item key={product.id} xs={6} sm={4} md={3}>
-            <Box
-              component={Link}
-              to={`/products/${product.id}`}
+            <Card
               sx={{
-                textDecoration: "none",
-                color: "inherit",
-                transition: "transform 0.2s cubic-bezier(.36,2,.57,.5)",
-                "&:hover": {
-                  transform: "scale(1.04)",
-                  boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.12)",
-                },
+                width: "100%",
+                borderRadius: "14px",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                backgroundColor: "white",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                p: 0,
               }}
             >
-              <Card
+              {/* Product Image (clickable) */}
+              <Box
+                component={Link}
+                to={`/products/${product.id}`}
                 sx={{
                   width: "100%",
-                  borderRadius: "14px",
+                  aspectRatio: "4/5",
                   overflow: "hidden",
+                  background: "#f7f7f7",
                   display: "flex",
-                  flexDirection: "column",
-                  backgroundColor: "white",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                  p: 0,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textDecoration: "none",
+                  color: "inherit",
+                  transition: "transform 0.2s cubic-bezier(.36,2,.57,.5)",
+                  "&:hover": {
+                    transform: "scale(1.04)",
+                    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.12)",
+                  },
                 }}
               >
-                {/* Product Image */}
-                <Box
+                <CardMedia
+                  component="img"
+                  image={product.primaryImageUrl || "/placeholder.png"}
+                  alt={product.name}
                   sx={{
                     width: "100%",
-                    aspectRatio: "4/5",
+                    height: "100%",
+                    objectFit: "cover",
+                    transition: "transform 0.3s",
+                  }}
+                />
+              </Box>
+              {/* Card Content - Product Details */}
+              <CardContent sx={{ py: 1.5, px: 1.5, position: "relative" }}>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight="bold"
+                  sx={{
+                    whiteSpace: "nowrap",
                     overflow: "hidden",
-                    background: "#f7f7f7",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    textOverflow: "ellipsis",
+                    fontSize: "1.05rem",
+                    mb: 0.5,
                   }}
                 >
-                  <CardMedia
-                    component="img"
-                    image={product.primaryImageUrl || "/placeholder.png"}
-                    alt={product.name}
-                    sx={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      transition: "transform 0.3s",
-                    }}
-                  />
-                </Box>
-                {/* Card Content - Product Details */}
-                <CardContent sx={{ py: 1.5, px: 1.5, position: "relative" }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    sx={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      fontSize: "1.05rem",
-                      mb: 0.5,
+                  <Link
+                    to={`/products/${product.id}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
                     }}
                   >
                     {product.name}
+                  </Link>
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ color: "#222", fontSize: "1.08rem" }}
+                  >
+                    ₹{product.price.toFixed(2)}
                   </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight="bold"
-                      sx={{ color: "#222", fontSize: "1.08rem" }}
-                    >
-                      ₹{product.price.toFixed(2)}
-                    </Typography>
-                    {product.oldPrice && product.oldPrice > product.price && (
-                      <Typography
-                        variant="body2"
+                  <Box sx={{ flex: 1 }} />
+                  <IconButton
+                    className={
+                      favoriteAnimating[product.id] ? "product-fav-btn" : ""
+                    }
+                    onClick={() => handleToggleFavorite(product.id)}
+                    disabled={favoriteLoading[product.id]}
+                    sx={{
+                      border: favorites.includes(product.id)
+                        ? "2px solid #E53935"
+                        : "2px solid #008CBA",
+                      borderRadius: "50px",
+                      width: 38,
+                      height: 38,
+                      boxShadow: favorites.includes(product.id)
+                        ? "0 0 8px #E53935"
+                        : "0 1px 4px #008CBA22",
+                      backgroundColor: favoriteAnimating[product.id]
+                        ? "rgba(229,57,53,0.1)"
+                        : "white",
+                      transition:
+                        "transform 0.3s cubic-bezier(.36,2,.57,.5), box-shadow 0.3s, border 0.3s",
+                      transform: favoriteAnimating[product.id]
+                        ? "scale(1.15)"
+                        : "scale(1)",
+                      "&:hover": {
+                        backgroundColor: "#fbe9e7",
+                        borderColor: "#E53935",
+                      },
+                    }}
+                    aria-label={
+                      favorites.includes(product.id)
+                        ? "Remove from wishlist"
+                        : "Add to wishlist"
+                    }
+                  >
+                    {favorites.includes(product.id) ? (
+                      <FavoriteIcon
                         sx={{
-                          textDecoration: "line-through",
-                          color: "#888",
-                          ml: 0.5,
-                          fontSize: "0.98rem",
+                          color: "#E53935",
+                          fontSize: 22,
+                          transition: "color 0.3s",
                         }}
-                      >
-                        ₹{product.oldPrice.toFixed(2)}
-                      </Typography>
-                    )}
-                    {product.oldPrice && product.oldPrice > product.price && (
-                      <Typography
-                        variant="body2"
+                      />
+                    ) : (
+                      <FavoriteBorderIcon
                         sx={{
-                          color: "#E57300",
-                          fontWeight: 600,
-                          ml: 0.5,
-                          fontSize: "0.98rem",
+                          color: "#008CBA",
+                          fontSize: 22,
+                          transition: "color 0.3s",
                         }}
-                      >
-                        (
-                        {Math.round(
-                          ((product.oldPrice - product.price) /
-                            product.oldPrice) *
-                            100
-                        )}
-                        % OFF)
-                      </Typography>
+                      />
                     )}
-                    <Box sx={{ flex: 1 }} />
-                    <FavoriteBorderIcon
-                      className="product-fav-icon"
-                      sx={{ color: "#888", fontSize: 22, ml: 1 }}
-                    />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Box>
+                  </IconButton>
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
         ))}
       </Grid>
