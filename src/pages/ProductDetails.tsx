@@ -4,7 +4,6 @@ import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import {
-  Alert,
   Box,
   Button,
   Container,
@@ -14,12 +13,13 @@ import {
 } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getCart, upsertCartItem } from "../api/cart";
 import { fetchCategories } from "../api/categories";
 import { addFavorite, fetchFavorites, removeFavorite } from "../api/favorites";
 import { fetchProductById } from "../api/products";
 import { fetchSizes } from "../api/sizes";
+import LoginDialog from "../components/LoginDialog";
 import { AuthContext } from "../context/AuthContext";
 import { CartResponse } from "../types/cart/CartResponse";
 import {
@@ -59,7 +59,7 @@ const ProductDetails = () => {
   const [sizes, setSizes] = useState<SizeResponse[]>([]); // ✅ Store all sizes
   const [category, setCategory] = useState<string>("Unknown Category");
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
-  const [authBanner, setAuthBanner] = useState<boolean>(false);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const authContext = useContext(AuthContext);
   const { token, user, userLoading } = authContext || {};
   const [cartButtonLoading, setCartButtonLoading] = useState<
@@ -111,7 +111,7 @@ const ProductDetails = () => {
 
   const handleAddToCart = async () => {
     if (!token || !user) {
-      setAuthBanner(true);
+      setLoginDialogOpen(true);
       return;
     }
     setCartButtonLoading("add");
@@ -136,7 +136,7 @@ const ProductDetails = () => {
     type: "plus" | "minus"
   ) => {
     if (!token || !user) {
-      setAuthBanner(true);
+      setLoginDialogOpen(true);
       return;
     }
     setCartButtonLoading(type);
@@ -153,7 +153,7 @@ const ProductDetails = () => {
 
   const toggleFavorite = async () => {
     if (!token || !user) {
-      setAuthBanner(true);
+      setLoginDialogOpen(true);
       return;
     }
     setFavoriteAnimating(true);
@@ -235,27 +235,10 @@ const ProductDetails = () => {
     <>
       <style>{spinnerStyle}</style>
       <Container sx={{ padding: "40px", textAlign: "center" }}>
-        {authBanner && (
-          <Alert
-            severity="warning"
-            action={
-              <Box>
-                <Button
-                  component={Link}
-                  to="/login"
-                  sx={{ marginRight: "10px" }}
-                >
-                  Login
-                </Button>
-                <Button component={Link} to="/register" variant="outlined">
-                  Register
-                </Button>
-              </Box>
-            }
-          >
-            Please login or register to add items to the cart/favorites.
-          </Alert>
-        )}
+        <LoginDialog
+          open={loginDialogOpen}
+          onClose={() => setLoginDialogOpen(false)}
+        />
 
         {product && (
           <Grid container spacing={4}>

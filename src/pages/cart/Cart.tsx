@@ -3,7 +3,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DiscountIcon from "@mui/icons-material/LocalOffer";
 import {
-  Alert,
   Box,
   Button,
   Container,
@@ -15,6 +14,7 @@ import Collapse from "@mui/material/Collapse";
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getCart, upsertCartItem } from "../../api/cart";
+import LoginDialog from "../../components/LoginDialog";
 import { AuthContext } from "../../context/AuthContext";
 import { CartResponse } from "../../types/cart/CartResponse";
 import "./Cart.css";
@@ -83,9 +83,12 @@ const Cart = () => {
 
   if (!token) {
     return (
-      <Container>
-        <Alert severity="warning">Please login to access your cart.</Alert>
-      </Container>
+      <LoginDialog
+        open={true}
+        onClose={() => {
+          window.location.href = "/";
+        }}
+      />
     );
   }
 

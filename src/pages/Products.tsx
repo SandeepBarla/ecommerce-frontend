@@ -9,12 +9,12 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import Alert from "@mui/material/Alert";
 import IconButton from "@mui/material/IconButton";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { addFavorite, fetchFavorites, removeFavorite } from "../api/favorites";
 import { fetchProducts } from "../api/products";
+import LoginDialog from "../components/LoginDialog";
 import { AuthContext } from "../context/AuthContext";
 import { ProductListResponse } from "../types/product/ProductListResponse";
 
@@ -32,7 +32,7 @@ const Products = () => {
   const [favoriteLoading, setFavoriteLoading] = useState<{
     [id: number]: boolean;
   }>({});
-  const [authAlert, setAuthAlert] = useState(false);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
 
   // ✅ Fetch Products
   const fetchProductsData = useCallback(async () => {
@@ -72,8 +72,7 @@ const Products = () => {
 
   const handleToggleFavorite = async (productId: number) => {
     if (!user || !token) {
-      setAuthAlert(true);
-      setTimeout(() => setAuthAlert(false), 2000);
+      setLoginDialogOpen(true);
       return;
     }
     setFavoriteLoading((fl) => ({ ...fl, [productId]: true }));
@@ -163,11 +162,10 @@ const Products = () => {
       >
         Our Collection
       </Typography>
-      {authAlert && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          Please login to add products to your favorites.
-        </Alert>
-      )}
+      <LoginDialog
+        open={loginDialogOpen}
+        onClose={() => setLoginDialogOpen(false)}
+      />
       <Grid container spacing={2}>
         {products.map((product) => (
           <Grid item key={product.id} xs={6} sm={4} md={3}>

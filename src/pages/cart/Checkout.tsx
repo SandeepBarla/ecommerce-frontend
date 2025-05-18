@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -11,6 +10,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { clearCart, getCart } from "../../api/cart";
 import { placeOrder } from "../../api/orders"; // Import order API
+import LoginDialog from "../../components/LoginDialog";
 import { AuthContext } from "../../context/AuthContext";
 import { useLoading } from "../../context/LoadingContext";
 import { CartItemResponse } from "../../types/cart/CartResponse";
@@ -110,9 +110,12 @@ const Checkout = () => {
 
   if (!token) {
     return (
-      <Container>
-        <Alert severity="warning">Please login to proceed to checkout.</Alert>
-      </Container>
+      <LoginDialog
+        open={true}
+        onClose={() => {
+          window.location.href = "/";
+        }}
+      />
     );
   }
 

@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Container,
   List,
@@ -9,6 +8,7 @@ import {
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { getUserOrders } from "../../api/orders"; // ✅ Corrected import
+import LoginDialog from "../../components/LoginDialog";
 import { AuthContext } from "../../context/AuthContext";
 import { OrderResponse } from "../../types/order/OrderResponse"; // ✅ Import correct type
 
@@ -38,9 +38,12 @@ const Orders = () => {
 
   if (!token) {
     return (
-      <Container>
-        <Alert severity="warning">Please login to view your orders.</Alert>
-      </Container>
+      <LoginDialog
+        open={true}
+        onClose={() => {
+          window.location.href = "/";
+        }}
+      />
     );
   }
 
