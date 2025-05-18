@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { fetchFavorites, removeFavorite } from "../../api/favorites";
 import { AuthContext } from "../../context/AuthContext";
 import { FavoriteResponse } from "../../types/favorites/FavoriteResponse";
+import "./Favorites.css";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState<FavoriteResponse[]>([]);
@@ -21,6 +22,7 @@ const Favorites = () => {
   const [error, setError] = useState<string | null>(null);
   const authContext = useContext(AuthContext);
   const { user } = authContext || {};
+  const [removingId, setRemovingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -28,7 +30,7 @@ const Favorites = () => {
       try {
         const data = await fetchFavorites(user.id);
         setFavorites(data);
-      } catch (err) {
+      } catch {
         setError("Failed to load favorites.");
       } finally {
         setLoading(false);
@@ -39,19 +41,24 @@ const Favorites = () => {
 
   const handleUnmarkFavorite = async (productId: number) => {
     if (!user) return;
-    try {
-      await removeFavorite(user.id, productId);
-      setFavorites((prevFavorites) =>
-        prevFavorites.filter((fav) => fav.productId !== productId)
-      );
-    } catch (error) {
-      console.error("Error removing favorite:", error);
-    }
+    setRemovingId(productId);
+    setTimeout(async () => {
+      try {
+        await removeFavorite(user.id, productId);
+        setFavorites((prevFavorites) =>
+          prevFavorites.filter((fav) => fav.productId !== productId)
+        );
+      } catch (error) {
+        console.error("Error removing favorite:", error);
+      } finally {
+        setRemovingId(null);
+      }
+    }, 350); // Animation duration
   };
 
   if (loading) {
     return (
-      <Container sx={{ padding: "40px" }}>
+      <Container sx={{ px: { xs: 1, md: 5 }, pt: 3, pb: 5 }}>
         <Typography
           variant="h4"
           fontWeight="bold"
@@ -59,51 +66,36 @@ const Favorites = () => {
         >
           My Favorites ❤️
         </Typography>
-
-        <Grid container spacing={4}>
+        <Grid container spacing={2}>
           {Array.from({ length: 8 }).map((_, index) => (
-            <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
+            <Grid item key={index} xs={6} sm={4} md={3}>
               <Card
                 sx={{
-                  maxWidth: 300,
-                  height: "100%",
-                  borderRadius: "10px",
+                  width: "100%",
+                  borderRadius: "14px",
                   backgroundColor: "white",
-                  boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  p: 0,
                 }}
               >
-                {/* ⬜ Image Skeleton */}
+                {/* Image Skeleton */}
                 <Box
+                  className="skeleton"
                   sx={{
-                    height: 300,
-                    background:
-                      "linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%)",
-                    backgroundSize: "200% 100%",
-                    animation: "pulse 1.2s infinite ease-in-out",
+                    aspectRatio: "4/5",
+                    width: "100%",
+                    borderRadius: "14px 14px 0 0",
                   }}
                 />
-
-                {/* ⬜ Text Skeletons */}
-                <CardContent sx={{ textAlign: "center" }}>
+                {/* Text Skeletons */}
+                <CardContent sx={{ py: 1.5, px: 1.5 }}>
                   <Box
-                    sx={{
-                      width: "70%",
-                      height: 20,
-                      margin: "10px auto",
-                      backgroundColor: "#e0e0e0",
-                      borderRadius: "4px",
-                      animation: "pulse 1.2s infinite ease-in-out",
-                    }}
+                    className="skeleton"
+                    sx={{ width: "70%", height: 18, mb: 1, borderRadius: 1 }}
                   />
                   <Box
-                    sx={{
-                      width: "50%",
-                      height: 20,
-                      margin: "10px auto",
-                      backgroundColor: "#e0e0e0",
-                      borderRadius: "4px",
-                      animation: "pulse 1.2s infinite ease-in-out",
-                    }}
+                    className="skeleton"
+                    sx={{ width: "40%", height: 16, borderRadius: 1 }}
                   />
                 </CardContent>
               </Card>
@@ -122,7 +114,7 @@ const Favorites = () => {
     );
 
   return (
-    <Container sx={{ padding: "40px" }}>
+    <Container sx={{ px: { xs: 1, md: 5 }, pt: 3, pb: 5 }}>
       <Typography
         variant="h4"
         fontWeight="bold"
@@ -130,7 +122,6 @@ const Favorites = () => {
       >
         My Favorites ❤️
       </Typography>
-
       {favorites.length === 0 ? (
         <Box
           sx={{
@@ -161,53 +152,54 @@ const Favorites = () => {
           </Box>
         </Box>
       ) : (
-        <Grid container spacing={4}>
+        <Grid
+          container
+          spacing={2}
+          justifyContent="flex-start"
+          alignItems="stretch"
+        >
           {favorites.map((fav) => (
-            <Grid item key={fav.productId} xs={12} sm={6} md={4} lg={3}>
+            <Grid item key={fav.productId} xs={6} sm={4} md={3}>
               <Box
                 component={Link}
                 to={`/products/${fav.productId}`}
                 sx={{
                   textDecoration: "none",
                   color: "inherit",
-                  transition: "transform 0.3s ease-in-out",
+                  transition: "transform 0.2s cubic-bezier(.36,2,.57,.5)",
                   "&:hover": {
-                    transform: "scale(1.05)",
-                    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
+                    transform: "scale(1.04)",
+                    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.12)",
                   },
                 }}
               >
                 <Card
+                  className={
+                    removingId === fav.productId ? "removing-favorite-card" : ""
+                  }
                   sx={{
-                    maxWidth: 300,
-                    height: "100%",
-                    borderRadius: "10px",
+                    width: "100%",
+                    borderRadius: "14px",
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-between",
-                    textDecoration: "none",
                     backgroundColor: "white",
-                    transition:
-                      "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                    "&:hover": {
-                      transform: "scale(1.05)",
-                      boxShadow: "0px 10px 20px rgba(0,0,0,0.3)",
-                      cursor: "pointer",
-                    },
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    p: 0,
+                    transition: "opacity 0.35s, transform 0.35s",
                   }}
                 >
-                  {/* ✅ Primary Image */}
+                  {/* Product Image */}
                   <Box
                     sx={{
-                      position: "relative",
-                      height: 300,
+                      width: "100%",
+                      aspectRatio: "4/5",
+                      overflow: "hidden",
+                      background: "#f7f7f7",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      overflow: "hidden",
-                      backgroundColor: "#f9f9f9",
+                      position: "relative",
                     }}
                   >
                     <CardMedia
@@ -217,41 +209,61 @@ const Favorites = () => {
                       sx={{
                         width: "100%",
                         height: "100%",
-                        objectFit: "contain",
-                        transition: "transform 0.3s ease-in-out",
-                        "&:hover": {
-                          transform: "scale(1.05)",
-                        },
+                        objectFit: "cover",
+                        transition: "transform 0.3s",
                       }}
                     />
-                    {/* ✅ Unmark Favorite Button */}
+                    {/* Unmark Favorite Button */}
                     <IconButton
+                      className={
+                        removingId === fav.productId
+                          ? "removing-favorite-heart"
+                          : ""
+                      }
                       onClick={(e) => {
                         e.preventDefault();
                         handleUnmarkFavorite(fav.productId);
                       }}
                       sx={{
                         position: "absolute",
-                        top: "10px",
-                        right: "10px",
-                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                        top: 10,
+                        right: 10,
+                        backgroundColor: "rgba(255,255,255,0.9)",
+                        boxShadow: "0 1px 4px #E5393522",
+                        borderRadius: "50%",
+                        zIndex: 2,
                         "&:hover": {
-                          backgroundColor: "rgba(255, 255, 255, 1)",
+                          backgroundColor: "#ffeaea",
                         },
                       }}
                     >
-                      <FavoriteIcon sx={{ color: "#E53935" }} /> {/* ❤️ */}
+                      <FavoriteIcon sx={{ color: "#E53935", fontSize: 22 }} />
                     </IconButton>
                   </Box>
-
-                  {/* ✅ Card Content - Product Details */}
-                  <CardContent sx={{ textAlign: "center", flexGrow: 1 }}>
-                    <Typography variant="h6" fontWeight="bold">
+                  {/* Card Content - Product Details */}
+                  <CardContent sx={{ py: 1.5, px: 1.5, position: "relative" }}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      sx={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        fontSize: "1.05rem",
+                        mb: 0.5,
+                      }}
+                    >
                       {fav.name}
                     </Typography>
-                    <Typography variant="h6" color="primary">
-                      ${fav.price.toFixed(2)}
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="bold"
+                        sx={{ color: "#222", fontSize: "1.08rem" }}
+                      >
+                        ₹{fav.price.toFixed(2)}
+                      </Typography>
+                    </Box>
                   </CardContent>
                 </Card>
               </Box>

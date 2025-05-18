@@ -423,87 +423,171 @@ const ProductDetails = () => {
                 ))}
               </Box>
 
-              {/* Favorite Toggle Button */}
-              <IconButton
-                ref={favoriteIconRef}
-                sx={{
-                  border: "1px solid #008CBA",
-                  borderRadius: "50%",
-                  mr: 2,
-                  transition:
-                    "transform 0.3s cubic-bezier(.36,2,.57,.5), box-shadow 0.3s",
-                  transform: favoriteAnimating ? "scale(1.3)" : "scale(1)",
-                  boxShadow: favoriteAnimating ? "0 0 10px #E53935" : "none",
-                  backgroundColor: favoriteAnimating
-                    ? "rgba(229,57,53,0.1)"
-                    : "transparent",
-                }}
-                onClick={toggleFavorite}
-              >
-                {isFavorite ? (
-                  <FavoriteIcon
-                    sx={{ color: "#E53935", transition: "color 0.3s" }}
-                  />
-                ) : (
-                  <FavoriteBorderIcon
-                    sx={{ color: "#008CBA", transition: "color 0.3s" }}
-                  />
-                )}
-              </IconButton>
-
-              {/* Cart Actions */}
-              {isInCart(product.id) ? (
-                <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-                  <Button
-                    variant="outlined"
-                    onClick={() =>
-                      handleUpdateQuantity(
-                        getCartItemQuantity(product.id) - 1,
-                        "minus"
-                      )
-                    }
-                    disabled={cartButtonLoading === "minus"}
-                  >
-                    {cartButtonLoading === "minus" ? (
-                      <span className="cart-btn-spinner" />
-                    ) : (
-                      "-"
-                    )}
-                  </Button>
-                  <Typography sx={{ mx: 2 }}>
-                    {getCartItemQuantity(product.id)}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    onClick={() =>
-                      handleUpdateQuantity(
-                        getCartItemQuantity(product.id) + 1,
-                        "plus"
-                      )
-                    }
-                    disabled={cartButtonLoading === "plus"}
-                  >
-                    {cartButtonLoading === "plus" ? (
-                      <span className="cart-btn-spinner" />
-                    ) : (
-                      "+"
-                    )}
-                  </Button>
-                </Box>
-              ) : (
-                <Button
-                  variant="contained"
-                  sx={{ backgroundColor: "#008CBA", color: "white" }}
-                  onClick={handleAddToCart}
-                  disabled={cartButtonLoading === "add"}
+              {/* Favorite Toggle Button and Cart Actions */}
+              <Box sx={{ display: "flex", gap: 2, mt: 3, width: "100%" }}>
+                {/* Wishlist Button */}
+                <IconButton
+                  ref={favoriteIconRef}
+                  className="product-fav-btn"
+                  sx={{
+                    border: isFavorite
+                      ? "2px solid #E53935"
+                      : "2px solid #008CBA",
+                    borderRadius: "50px",
+                    width: 48,
+                    height: 48,
+                    boxShadow: isFavorite
+                      ? "0 0 8px #E53935"
+                      : "0 1px 4px #008CBA22",
+                    backgroundColor: favoriteAnimating
+                      ? "rgba(229,57,53,0.1)"
+                      : "white",
+                    transition:
+                      "transform 0.3s cubic-bezier(.36,2,.57,.5), box-shadow 0.3s, border 0.3s",
+                    transform: favoriteAnimating ? "scale(1.15)" : "scale(1)",
+                    "&:hover": {
+                      backgroundColor: "#fbe9e7",
+                      borderColor: "#E53935",
+                    },
+                  }}
+                  onClick={toggleFavorite}
+                  aria-label={
+                    isFavorite ? "Remove from wishlist" : "Add to wishlist"
+                  }
                 >
-                  {cartButtonLoading === "add" ? (
-                    <span className="cart-btn-spinner" />
+                  {isFavorite ? (
+                    <FavoriteIcon
+                      sx={{
+                        color: "#E53935",
+                        fontSize: 28,
+                        transition: "color 0.3s",
+                      }}
+                    />
                   ) : (
-                    "Add to Cart"
+                    <FavoriteBorderIcon
+                      sx={{
+                        color: "#008CBA",
+                        fontSize: 28,
+                        transition: "color 0.3s",
+                      }}
+                    />
                   )}
-                </Button>
-              )}
+                </IconButton>
+
+                {/* Add to Cart or Stepper */}
+                <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
+                  {isInCart(product.id) ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        width: "100%",
+                        gap: 1,
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        sx={{
+                          minWidth: 44,
+                          height: 44,
+                          borderRadius: "50%",
+                          fontSize: 22,
+                          fontWeight: "bold",
+                          borderColor: "#008CBA",
+                          color: "#008CBA",
+                          background: "white",
+                          "&:hover": { background: "#f0f8ff" },
+                        }}
+                        onClick={() =>
+                          handleUpdateQuantity(
+                            getCartItemQuantity(product.id) - 1,
+                            "minus"
+                          )
+                        }
+                        disabled={cartButtonLoading === "minus"}
+                        aria-label="Decrease quantity"
+                      >
+                        {cartButtonLoading === "minus" ? (
+                          <span className="cart-btn-spinner" />
+                        ) : (
+                          "-"
+                        )}
+                      </Button>
+                      <Typography
+                        sx={{
+                          mx: 2,
+                          fontWeight: "bold",
+                          fontSize: 20,
+                          minWidth: 24,
+                          textAlign: "center",
+                        }}
+                      >
+                        {getCartItemQuantity(product.id)}
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        sx={{
+                          minWidth: 44,
+                          height: 44,
+                          borderRadius: "50%",
+                          fontSize: 22,
+                          fontWeight: "bold",
+                          borderColor: "#008CBA",
+                          color: "#008CBA",
+                          background: "white",
+                          "&:hover": { background: "#f0f8ff" },
+                        }}
+                        onClick={() =>
+                          handleUpdateQuantity(
+                            getCartItemQuantity(product.id) + 1,
+                            "plus"
+                          )
+                        }
+                        disabled={cartButtonLoading === "plus"}
+                        aria-label="Increase quantity"
+                      >
+                        {cartButtonLoading === "plus" ? (
+                          <span className="cart-btn-spinner" />
+                        ) : (
+                          "+"
+                        )}
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      className="product-add-to-cart-btn"
+                      sx={{
+                        width: "100%",
+                        height: 48,
+                        borderRadius: "50px",
+                        fontWeight: "bold",
+                        fontSize: "1.1rem",
+                        background:
+                          "linear-gradient(90deg, #008CBA 60%, #00b894 100%)",
+                        color: "white",
+                        boxShadow: "0 2px 8px #008CBA22",
+                        textTransform: "uppercase",
+                        letterSpacing: 1,
+                        "&:hover": {
+                          background:
+                            "linear-gradient(90deg, #00b894 60%, #008CBA 100%)",
+                          boxShadow: "0 4px 16px #008CBA33",
+                        },
+                      }}
+                      onClick={handleAddToCart}
+                      disabled={cartButtonLoading === "add"}
+                      aria-label="Add to cart"
+                    >
+                      {cartButtonLoading === "add" ? (
+                        <span className="cart-btn-spinner" />
+                      ) : (
+                        "Add to Cart"
+                      )}
+                    </Button>
+                  )}
+                </Box>
+              </Box>
             </Grid>
           </Grid>
         )}
