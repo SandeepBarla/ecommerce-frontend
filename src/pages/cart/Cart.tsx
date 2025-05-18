@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Container,
   Grid,
   Paper,
@@ -28,6 +29,8 @@ const Cart = () => {
 
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [couponCode, setCouponCode] = useState<string>("");
+  const [skeletonLoading, setSkeletonLoading] = useState<boolean>(true);
+  const [updatingItemId, setUpdatingItemId] = useState<number | null>(null);
 
   useEffect(() => {
     if (token && user?.id) {
@@ -36,22 +39,39 @@ const Cart = () => {
   }, [token, user?.id]);
 
   const fetchCart = async () => {
+    setSkeletonLoading(true);
     try {
       const response = await getCart(user!.id);
       setCart(response);
     } catch (error) {
       console.error("Error fetching cart:", error);
+    } finally {
+      setSkeletonLoading(false);
     }
   };
 
   const handleUpdateQuantity = async (productId: number, quantity: number) => {
     if (quantity < 0) return;
-
+    setUpdatingItemId(productId);
     try {
       await upsertCartItem(user!.id, productId, quantity);
-      fetchCart();
+      setCart((prevCart) => {
+        if (!prevCart) return prevCart;
+        const updatedItems = prevCart.cartItems
+          .map((item) =>
+            item.product.id === productId ? { ...item, quantity } : item
+          )
+          .filter((item) => item.quantity > 0);
+        const totalPrice = updatedItems.reduce(
+          (sum, item) => sum + item.product.price * item.quantity,
+          0
+        );
+        return { ...prevCart, cartItems: updatedItems, totalPrice };
+      });
     } catch (error) {
       console.error("Error updating cart:", error);
+    } finally {
+      setUpdatingItemId(null);
     }
   };
 
@@ -59,6 +79,113 @@ const Cart = () => {
     return (
       <Container>
         <Alert severity="warning">Please login to access your cart.</Alert>
+      </Container>
+    );
+  }
+
+  if (skeletonLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 5 }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          textAlign="center"
+          sx={{ mb: 3 }}
+        >
+          Your Shopping Cart
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>
+                      <b>Image</b>
+                    </TableCell>
+                    <TableCell>
+                      <b>Product</b>
+                    </TableCell>
+                    <TableCell>
+                      <b>Price</b>
+                    </TableCell>
+                    <TableCell>
+                      <b>Quantity</b>
+                    </TableCell>
+                    <TableCell>
+                      <b>Total</b>
+                    </TableCell>
+                    <TableCell>
+                      <b>Remove</b>
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Array.from({ length: 4 }).map((_, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        <Box
+                          className="skeleton"
+                          sx={{ width: 60, height: 60, borderRadius: "5px" }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                          className="skeleton"
+                          sx={{ width: 120, height: 20, borderRadius: "4px" }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                          className="skeleton"
+                          sx={{ width: 60, height: 20, borderRadius: "4px" }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                          className="skeleton"
+                          sx={{ width: 80, height: 30, borderRadius: "4px" }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                          className="skeleton"
+                          sx={{ width: 60, height: 20, borderRadius: "4px" }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                          className="skeleton"
+                          sx={{ width: 40, height: 30, borderRadius: "4px" }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3 }}>
+              <Box
+                className="skeleton"
+                sx={{ width: "80%", height: 30, mb: 2, borderRadius: "6px" }}
+              />
+              <Box
+                className="skeleton"
+                sx={{ width: "60%", height: 20, mb: 1, borderRadius: "4px" }}
+              />
+              <Box
+                className="skeleton"
+                sx={{ width: "60%", height: 20, mb: 1, borderRadius: "4px" }}
+              />
+              <Box
+                className="skeleton"
+                sx={{ width: "100%", height: 40, mt: 3, borderRadius: "8px" }}
+              />
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
     );
   }
@@ -124,8 +251,13 @@ const Cart = () => {
                               item.quantity - 1
                             )
                           }
+                          disabled={updatingItemId === item.product.id}
                         >
-                          -
+                          {updatingItemId === item.product.id ? (
+                            <CircularProgress size={18} />
+                          ) : (
+                            "-"
+                          )}
                         </Button>
                         <Typography sx={{ mx: 2, display: "inline" }}>
                           {item.quantity}
@@ -138,8 +270,13 @@ const Cart = () => {
                               item.quantity + 1
                             )
                           }
+                          disabled={updatingItemId === item.product.id}
                         >
-                          +
+                          {updatingItemId === item.product.id ? (
+                            <CircularProgress size={18} />
+                          ) : (
+                            "+"
+                          )}
                         </Button>
                       </TableCell>
                       <TableCell>
@@ -152,8 +289,13 @@ const Cart = () => {
                           onClick={() =>
                             handleUpdateQuantity(item.product.id, 0)
                           }
+                          disabled={updatingItemId === item.product.id}
                         >
-                          ❌
+                          {updatingItemId === item.product.id ? (
+                            <CircularProgress size={18} />
+                          ) : (
+                            "❌"
+                          )}
                         </Button>
                       </TableCell>
                     </TableRow>
