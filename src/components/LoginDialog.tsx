@@ -46,6 +46,17 @@ const LoginDialog = ({ open, onClose }: LoginDialogProps) => {
   const [error, setError] = useState<string | null>(null);
   const [localLoading, setLocalLoading] = useState<boolean>(false);
 
+  // Reset form when dialog opens or mode changes
+  React.useEffect(() => {
+    setFormData({
+      email: "",
+      password: "",
+      ...(mode === "register" ? { fullName: "" } : {}),
+    });
+    setError(null);
+    setLocalLoading(false);
+  }, [open, mode]);
+
   if (!authContext) return null;
   const { login } = authContext;
 
@@ -108,17 +119,6 @@ const LoginDialog = ({ open, onClose }: LoginDialogProps) => {
       setLoading(false);
     }
   };
-
-  // Reset form when dialog opens or mode changes
-  React.useEffect(() => {
-    setFormData({
-      email: "",
-      password: "",
-      ...(mode === "register" ? { fullName: "" } : {}),
-    });
-    setError(null);
-    setLocalLoading(false);
-  }, [open, mode]);
 
   return (
     <Dialog

@@ -2,6 +2,11 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css"; // Import your CSS file
 import Footer from "./components/layout/Footer"; // Ensure you've created this component
 import Navbar from "./components/layout/Navbar";
+import Account from "./pages/account/Account";
+import Addresses from "./pages/account/Addresses";
+import OrderDetails from "./pages/account/OrderDetails";
+import Orders from "./pages/account/Orders";
+import Profile from "./pages/account/Profile";
 import AdminAddProduct from "./pages/admin/AdminAddProduct";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminEditProduct from "./pages/admin/AdminEditProduct";
@@ -14,7 +19,6 @@ import Checkout from "./pages/cart/Checkout";
 import Favorites from "./pages/favorites/Favorites";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Orders from "./pages/orders/Orders";
 import ProductDetails from "./pages/ProductDetails";
 import Products from "./pages/Products";
 import Register from "./pages/Register";
@@ -35,6 +39,11 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/account/profile" element={<Profile />} />
+            <Route path="/account/addresses" element={<Addresses />} />
+            <Route path="/account/orders" element={<Orders />} />
+            <Route path="/account/orders/:orderId" element={<OrderDetails />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/products/new" element={<AdminAddProduct />} />
