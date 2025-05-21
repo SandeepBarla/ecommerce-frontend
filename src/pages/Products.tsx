@@ -1,15 +1,3 @@
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import {
-  Box,
-  Card,
-  CardContent,
-  CardMedia,
-  Container,
-  Grid,
-  Typography,
-} from "@mui/material";
-import IconButton from "@mui/material/IconButton";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { addFavorite, fetchFavorites, removeFavorite } from "../api/favorites";
@@ -97,215 +85,116 @@ const Products = () => {
 
   if (loading || favoritesLoading) {
     return (
-      <Container sx={{ px: { xs: 1, md: 5 }, pt: 3, pb: 5 }}>
-        <Typography
-          variant="h4"
-          fontWeight="bold"
-          sx={{ marginBottom: "20px", textAlign: "center" }}
-        >
-          Our Collection
-        </Typography>
-        <Grid container spacing={2}>
+      <div className="container mx-auto px-4 py-12">
+        <h2 className="text-4xl font-bold mb-8 text-center">Our Collection</h2>
+        <div className="grid grid-cols-1 md:grid-cols-8 gap-4">
           {Array.from({ length: 8 }).map((_, index) => (
-            <Grid item key={index} xs={6} sm={4} md={3}>
-              <Card
-                sx={{
-                  width: "100%",
-                  borderRadius: "14px",
-                  backgroundColor: "white",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                  p: 0,
-                }}
-              >
+            <div key={index} className="col-span-6 sm:col-span-4 md:col-span-3">
+              <div className="w-full border rounded-lg bg-white shadow-lg p-0">
                 {/* 🖼 Image Skeleton */}
-                <Box
-                  className="skeleton"
-                  sx={{
-                    aspectRatio: "4/5",
-                    width: "100%",
-                    borderRadius: "14px 14px 0 0",
-                  }}
-                />
+                <div className="skeleton aspect-video w-full h-[200px] rounded-t-lg"></div>
                 {/* 📝 Text Skeletons */}
-                <CardContent sx={{ py: 1.5, px: 1.5 }}>
-                  <Box
-                    className="skeleton"
-                    sx={{ width: "70%", height: 18, mb: 1, borderRadius: 1 }}
-                  />
-                  <Box
-                    className="skeleton"
-                    sx={{ width: "40%", height: 16, borderRadius: 1 }}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
+                <div className="p-4">
+                  <div className="skeleton w-7/10 h-6 mb-2 rounded"></div>
+                  <div className="skeleton w-4/10 h-5 rounded"></div>
+                </div>
+              </div>
+            </div>
           ))}
-        </Grid>
-      </Container>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Typography color="error" textAlign="center" sx={{ marginTop: "20px" }}>
-        {error}
-      </Typography>
+      <div className="container mx-auto px-4 py-12">
+        <h2 className="text-4xl font-bold mb-8 text-center">Our Collection</h2>
+        <p className="text-red-500 text-center">{error}</p>
+      </div>
     );
   }
 
   return (
-    <Container sx={{ px: { xs: 1, md: 5 }, pt: 3, pb: 5 }}>
-      <Typography
-        variant="h4"
-        fontWeight="bold"
-        sx={{ marginBottom: "20px", textAlign: "center" }}
-      >
-        Our Collection
-      </Typography>
+    <div className="container mx-auto px-4 py-12">
+      <h2 className="text-4xl font-bold mb-8 text-center">Our Collection</h2>
       <LoginDialog
         open={loginDialogOpen}
         onClose={() => setLoginDialogOpen(false)}
       />
-      <Grid container spacing={2}>
+      <div className="grid grid-cols-1 md:grid-cols-8 gap-4">
         {products.map((product) => (
-          <Grid item key={product.id} xs={6} sm={4} md={3}>
-            <Card
-              sx={{
-                width: "100%",
-                borderRadius: "14px",
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                backgroundColor: "white",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                p: 0,
-              }}
-            >
+          <div
+            key={product.id}
+            className="col-span-6 sm:col-span-4 md:col-span-3"
+          >
+            <div className="w-full border rounded-lg overflow-hidden flex flex-col bg-white shadow-lg p-0">
               {/* Product Image (clickable) */}
-              <Box
-                component={Link}
+              <Link
                 to={`/products/${product.id}`}
-                sx={{
-                  width: "100%",
-                  aspectRatio: "4/5",
-                  overflow: "hidden",
-                  background: "#f7f7f7",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textDecoration: "none",
-                  color: "inherit",
-                  transition: "transform 0.2s cubic-bezier(.36,2,.57,.5)",
-                  "&:hover": {
-                    transform: "scale(1.04)",
-                    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.12)",
-                  },
-                }}
+                className="w-full aspect-video overflow-hidden bg-gray-100 flex items-center justify-center text-inherit text-decoration-none transition-transform duration-200 hover:scale-104 hover:shadow-md"
               >
-                <CardMedia
-                  component="img"
-                  image={product.primaryImageUrl || "/placeholder.png"}
+                <img
+                  src={product.primaryImageUrl || "/placeholder.png"}
                   alt={product.name}
-                  sx={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    transition: "transform 0.3s",
-                  }}
+                  className="w-full h-full object-cover transition-transform duration-300"
                 />
-              </Box>
+              </Link>
               {/* Card Content - Product Details */}
-              <CardContent sx={{ py: 1.5, px: 1.5, position: "relative" }}>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight="bold"
-                  sx={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    fontSize: "1.05rem",
-                    mb: 0.5,
-                  }}
+              <div className="p-4 position-relative">
+                <Link
+                  to={`/products/${product.id}`}
+                  className="text-inherit text-decoration-none"
                 >
-                  <Link
-                    to={`/products/${product.id}`}
-                    style={{
-                      textDecoration: "none",
-                      color: "inherit",
-                    }}
-                  >
+                  <h3 className="text-base font-bold whitespace-nowrap overflow-hidden text-ellipsis mb-2">
                     {product.name}
-                  </Link>
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    sx={{ color: "#222", fontSize: "1.08rem" }}
-                  >
+                  </h3>
+                </Link>
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-bold text-gray-800">
                     ₹{product.price.toFixed(2)}
-                  </Typography>
-                  <Box sx={{ flex: 1 }} />
-                  <IconButton
-                    className={
-                      favoriteAnimating[product.id] ? "product-fav-btn" : ""
-                    }
+                  </span>
+                  <div className="flex-1"></div>
+                  <button
+                    className={`product-fav-btn ${
+                      favoriteAnimating[product.id] ? "" : ""
+                    }`}
                     onClick={() => handleToggleFavorite(product.id)}
                     disabled={favoriteLoading[product.id]}
-                    sx={{
-                      border: favorites.includes(product.id)
-                        ? "2px solid #E53935"
-                        : "2px solid #008CBA",
-                      borderRadius: "50px",
-                      width: 38,
-                      height: 38,
-                      boxShadow: favorites.includes(product.id)
-                        ? "0 0 8px #E53935"
-                        : "0 1px 4px #008CBA22",
-                      backgroundColor: favoriteAnimating[product.id]
-                        ? "rgba(229,57,53,0.1)"
-                        : "white",
-                      transition:
-                        "transform 0.3s cubic-bezier(.36,2,.57,.5), box-shadow 0.3s, border 0.3s",
-                      transform: favoriteAnimating[product.id]
-                        ? "scale(1.15)"
-                        : "scale(1)",
-                      "&:hover": {
-                        backgroundColor: "#fbe9e7",
-                        borderColor: "#E53935",
-                      },
-                    }}
-                    aria-label={
-                      favorites.includes(product.id)
-                        ? "Remove from wishlist"
-                        : "Add to wishlist"
-                    }
                   >
                     {favorites.includes(product.id) ? (
-                      <FavoriteIcon
-                        sx={{
-                          color: "#E53935",
-                          fontSize: 22,
-                          transition: "color 0.3s",
-                        }}
-                      />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className={`${
+                          favoriteAnimating[product.id] ? "" : ""
+                        } transition-colors duration-300`}
+                      >
+                        <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.4 5.401-5.4 2.88 0 5.304 2.336 5.304 5.4 0 0 6.38 7.425 13.116 7.425 7.425 0 0 0 0-7.425C20.4 3.02 22.92 5.356 22.92 8.478c0 3.064-2.52 5.304-5.397 5.304z" />
+                      </svg>
                     ) : (
-                      <FavoriteBorderIcon
-                        sx={{
-                          color: "#008CBA",
-                          fontSize: 22,
-                          transition: "color 0.3s",
-                        }}
-                      />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="transition-colors duration-300"
+                      >
+                        <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.4 5.401-5.4 2.88 0 5.304 2.336 5.304 5.4 0 0 6.38 7.425 13.116 7.425 7.425 0 0 0 0-7.425C20.4 3.02 22.92 5.356 22.92 8.478c0 3.064-2.52 5.304-5.397 5.304z" />
+                      </svg>
                     )}
-                  </IconButton>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         ))}
-      </Grid>
-    </Container>
+      </div>
+    </div>
   );
 };
 

@@ -1,23 +1,9 @@
-import CloseIcon from "@mui/icons-material/Close";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import DiscountIcon from "@mui/icons-material/LocalOffer";
-import {
-  Box,
-  Button,
-  Container,
-  IconButton,
-  Paper,
-  Typography,
-} from "@mui/material";
-import Collapse from "@mui/material/Collapse";
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getCart, upsertCartItem } from "../../api/cart";
 import LoginDialog from "../../components/LoginDialog";
 import { AuthContext } from "../../context/AuthContext";
 import { CartResponse } from "../../types/cart/CartResponse";
-import "./Cart.css";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -30,9 +16,6 @@ const Cart = () => {
     id: number;
     type: "plus" | "minus" | "delete";
   } | null>(null);
-  const [coupon, setCoupon] = useState("");
-  const [couponError, setCouponError] = useState("");
-  const [couponOpen, setCouponOpen] = useState(false);
 
   useEffect(() => {
     if (token && user?.id) {
@@ -95,261 +78,114 @@ const Cart = () => {
   if (skeletonLoading) {
     const isMobile = window.innerWidth <= 600;
     return (
-      <Container maxWidth="lg" sx={{ mt: 5 }}>
-        <Typography
-          variant="h4"
-          fontWeight="bold"
-          textAlign="center"
-          sx={{ mb: 3 }}
-        >
+      <div className="container mx-auto mt-5">
+        <h2 className="text-2xl font-bold text-center mb-3">
           Your Shopping Cart
-        </Typography>
+        </h2>
         {isMobile ? (
-          <Box sx={{ maxWidth: 480, mx: "auto", pb: 8 }}>
+          <div className="max-w-480 mx-auto pb-8">
             {/* Card skeletons for cart items */}
             {Array.from({ length: 2 }).map((_, idx) => (
-              <Paper
+              <div
                 key={idx}
-                sx={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  mb: 2,
-                  p: 2,
-                  borderRadius: 3,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                  gap: 2,
-                  minHeight: 100,
-                }}
+                className="flex items-start mb-2 p-2 border rounded-3 gap-2 min-h-[100px]"
               >
-                <Box
-                  className="skeleton"
-                  sx={{ width: 80, height: 80, borderRadius: 2, mr: 2 }}
-                />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Box
-                    className="skeleton"
-                    sx={{ width: "70%", height: 20, borderRadius: 2, mb: 1 }}
-                  />
-                  <Box
-                    className="skeleton"
-                    sx={{ width: "40%", height: 16, borderRadius: 2, mb: 1 }}
-                  />
-                  <Box
-                    className="skeleton"
-                    sx={{ width: 100, height: 32, borderRadius: 2 }}
-                  />
-                </Box>
-              </Paper>
+                <div className="skeleton w-80 h-80 rounded-2 mr-2" />
+                <div className="flex-1 min-w-0">
+                  <div className="skeleton w-70 h-20 rounded-2 mb-1" />
+                  <div className="skeleton w-40 h-16 rounded-2 mb-1" />
+                  <div className="skeleton w-100 h-32 rounded-2" />
+                </div>
+              </div>
             ))}
             {/* Skeleton for price details and coupon */}
-            <Paper sx={{ p: 2, borderRadius: 3, mb: 2 }}>
-              <Box
-                className="skeleton"
-                sx={{ width: "60%", height: 24, mb: 2, borderRadius: 2 }}
-              />
-              <Box
-                className="skeleton"
-                sx={{ width: "40%", height: 18, mb: 1, borderRadius: 2 }}
-              />
-              <Box
-                className="skeleton"
-                sx={{ width: "40%", height: 18, mb: 1, borderRadius: 2 }}
-              />
-              <Box
-                className="skeleton"
-                sx={{ width: "100%", height: 40, mt: 3, borderRadius: 2 }}
-              />
-            </Paper>
+            <div className="p-2 border rounded-3 mb-2">
+              <div className="skeleton w-60 h-24 mb-2 rounded-2" />
+              <div className="skeleton w-40 h-18 mb-1 rounded-2" />
+              <div className="skeleton w-40 h-18 mb-1 rounded-2" />
+              <div className="skeleton w-100 h-40 mt-3 rounded-2" />
+            </div>
             {/* Sticky footer skeleton for mobile */}
-            <Box
-              sx={{
-                position: "fixed",
-                left: 0,
-                right: 0,
-                bottom: 0,
-                maxWidth: 480,
-                mx: "auto",
-                zIndex: 1000,
-                display: "flex",
-                bgcolor: "background.paper",
-                boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
-                p: 2,
-                gap: 2,
-                alignItems: "center",
-              }}
-            >
-              <Box
-                className="skeleton"
-                sx={{ width: 100, height: 28, borderRadius: 2 }}
-              />
-              <Box
-                className="skeleton"
-                sx={{ width: 120, height: 40, borderRadius: 2 }}
-              />
-            </Box>
-          </Box>
+            <div className="fixed left-0 right-0 bottom-0 max-w-480 mx-auto z-1000 flex bg-background-paper box-shadow">
+              <div className="skeleton w-100 h-28 rounded-2" />
+              <div className="skeleton w-120 h-40 rounded-2" />
+            </div>
+          </div>
         ) : (
-          <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
+          <div className="flex gap-3 items-start">
             {/* Left: Cart item skeletons */}
-            <Box sx={{ flex: 2 }}>
+            <div className="flex-2">
               {Array.from({ length: 2 }).map((_, idx) => (
-                <Paper
+                <div
                   key={idx}
-                  sx={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    mb: 2,
-                    p: 2,
-                    borderRadius: 3,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    gap: 2,
-                    minHeight: 100,
-                  }}
+                  className="flex items-start mb-2 p-2 border rounded-3 gap-2 min-h-[100px]"
                 >
-                  <Box
-                    className="skeleton"
-                    sx={{ width: 80, height: 80, borderRadius: 2, mr: 2 }}
-                  />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box
-                      className="skeleton"
-                      sx={{ width: "70%", height: 20, borderRadius: 2, mb: 1 }}
-                    />
-                    <Box
-                      className="skeleton"
-                      sx={{ width: "40%", height: 16, borderRadius: 2, mb: 1 }}
-                    />
-                    <Box
-                      className="skeleton"
-                      sx={{ width: 100, height: 32, borderRadius: 2 }}
-                    />
-                  </Box>
-                </Paper>
+                  <div className="skeleton w-80 h-80 rounded-2 mr-2" />
+                  <div className="flex-1 min-w-0">
+                    <div className="skeleton w-70 h-20 rounded-2 mb-1" />
+                    <div className="skeleton w-40 h-16 rounded-2 mb-1" />
+                    <div className="skeleton w-100 h-32 rounded-2" />
+                  </div>
+                </div>
               ))}
-            </Box>
+            </div>
             {/* Right: Price details skeleton */}
-            <Box sx={{ flex: 1, minWidth: 260, maxWidth: 400, width: 360 }}>
-              <Paper sx={{ p: 2, borderRadius: 3, mb: 2 }}>
-                <Box
-                  className="skeleton"
-                  sx={{ width: "60%", height: 24, mb: 2, borderRadius: 2 }}
-                />
-                <Box
-                  className="skeleton"
-                  sx={{ width: "40%", height: 18, mb: 1, borderRadius: 2 }}
-                />
-                <Box
-                  className="skeleton"
-                  sx={{ width: "40%", height: 18, mb: 1, borderRadius: 2 }}
-                />
-                <Box
-                  className="skeleton"
-                  sx={{ width: "100%", height: 40, mt: 3, borderRadius: 2 }}
-                />
-              </Paper>
-            </Box>
-          </Box>
+            <div className="flex-1 min-w-260 max-w-400 w-360">
+              <div className="p-2 border rounded-3 mb-2">
+                <div className="skeleton w-60 h-24 mb-2 rounded-2" />
+                <div className="skeleton w-40 h-18 mb-1 rounded-2" />
+                <div className="skeleton w-40 h-18 mb-1 rounded-2" />
+                <div className="skeleton w-100 h-40 mt-3 rounded-2" />
+              </div>
+            </div>
+          </div>
         )}
-      </Container>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 5 }}>
-      <Typography
-        variant="h4"
-        fontWeight="bold"
-        textAlign="center"
-        sx={{ mb: 3 }}
-      >
+    <div className="container mx-auto mt-5">
+      <h2 className="text-2xl font-bold text-center mb-3">
         Your Shopping Cart
-      </Typography>
+      </h2>
 
       {cart && cart.cartItems.length > 0 ? (
-        <Box
-          sx={{
-            maxWidth: { xs: 480, md: "100%" },
-            mx: "auto",
-            pb: 8,
-            display: { md: "flex" },
-            gap: { md: 3 },
-            alignItems: "flex-start",
-          }}
-        >
+        <div className="max-w-lg mx-auto pb-8">
           {/* Cart Items (left) */}
-          <Box sx={{ flex: 2, minWidth: 0 }}>
+          <div className="flex-2 min-w-0">
             {cart.cartItems.map((item) => (
-              <Paper
+              <div
                 key={item.id}
-                sx={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  mb: 2,
-                  p: 2,
-                  borderRadius: 3,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                  gap: 2,
-                }}
+                className="flex items-start mb-2 p-2 border rounded-3 gap-2"
               >
                 <Link
                   to={`/products/${item.product.id}`}
-                  style={{ display: "flex", alignItems: "center" }}
+                  className="flex items-center"
                 >
-                  <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      mr: 2,
-                      boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                      background: "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                  <div className="w-80 h-80 rounded-2 overflow-hidden mr-2 box-shadow">
                     <img
                       src={item.product.primaryImageUrl}
                       alt={item.product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
-                      }}
+                      className="w-full h-full object-contain"
                     />
-                  </Box>
+                  </div>
                 </Link>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
+                <div className="flex-1 min-w-0">
                   <Link
                     to={`/products/${item.product.id}`}
-                    style={{ textDecoration: "none", color: "inherit" }}
+                    className="text-decoration-none text-inherit"
                   >
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight="bold"
-                      sx={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        fontSize: "1.1rem",
-                        mb: 0.5,
-                      }}
-                    >
+                    <h3 className="text-subtitle1 font-bold whitespace-nowrap overflow-hidden text-ellipsis font-size-1-1rem mb-0-5">
                       {item.product.name}
-                    </Typography>
+                    </h3>
                   </Link>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 1 }}
-                  >
+                  <p className="text-body2 text-text-secondary mb-1">
                     ₹{item.product.price.toFixed(2)}
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <button
+                      className="outlined-btn-small"
                       onClick={() =>
                         handleUpdateQuantity(
                           item.product.id,
@@ -361,7 +197,6 @@ const Cart = () => {
                         updatingItem?.id === item.product.id &&
                         updatingItem?.type === "minus"
                       }
-                      sx={{ minWidth: 36, px: 0 }}
                     >
                       {updatingItem?.id === item.product.id &&
                       updatingItem?.type === "minus" ? (
@@ -369,15 +204,12 @@ const Cart = () => {
                       ) : (
                         "-"
                       )}
-                    </Button>
-                    <Typography
-                      sx={{ mx: 1, minWidth: 24, textAlign: "center" }}
-                    >
+                    </button>
+                    <span className="mx-1 min-w-24 text-center">
                       {item.quantity}
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      size="small"
+                    </span>
+                    <button
+                      className="outlined-btn-small"
                       onClick={() =>
                         handleUpdateQuantity(
                           item.product.id,
@@ -389,7 +221,6 @@ const Cart = () => {
                         updatingItem?.id === item.product.id &&
                         updatingItem?.type === "plus"
                       }
-                      sx={{ minWidth: 36, px: 0 }}
                     >
                       {updatingItem?.id === item.product.id &&
                       updatingItem?.type === "plus" ? (
@@ -397,9 +228,9 @@ const Cart = () => {
                       ) : (
                         "+"
                       )}
-                    </Button>
-                    <IconButton
-                      color="error"
+                    </button>
+                    <button
+                      className="text-error"
                       onClick={() =>
                         handleUpdateQuantity(item.product.id, 0, "delete")
                       }
@@ -407,241 +238,109 @@ const Cart = () => {
                         updatingItem?.id === item.product.id &&
                         updatingItem?.type === "delete"
                       }
-                      sx={{ ml: 1 }}
                     >
                       {updatingItem?.id === item.product.id &&
                       updatingItem?.type === "delete" ? (
                         <span className="cart-btn-spinner" />
                       ) : (
-                        <DeleteIcon />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="w-6 h-6"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
                       )}
-                    </IconButton>
-                  </Box>
-                </Box>
-              </Paper>
+                    </button>
+                  </div>
+                </div>
+              </div>
             ))}
-          </Box>
+          </div>
           {/* Price Details, Coupon, Checkout (right) */}
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: 260,
-              maxWidth: 400,
-              width: { xs: "100%", md: 360 },
-              mx: { xs: "auto", md: 0 },
-            }}
-          >
+          <div className="flex-1 min-w-260 max-w-400 w-full mx-auto">
             {/* Coupon Collapsible */}
-            <Paper sx={{ p: 2, borderRadius: 3, mb: 2 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  cursor: "pointer",
-                  px: 0.5,
-                }}
-                onClick={() => setCouponOpen((open) => !open)}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <DiscountIcon color="primary" sx={{ mr: 1 }} />
-                  <Typography fontWeight="bold">Have a promo code?</Typography>
-                </Box>
-                <ExpandMoreIcon
-                  sx={{
-                    transform: couponOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    transition: "transform 0.2s",
-                    color: "#666",
-                  }}
-                />
-              </Box>
-              <Collapse in={couponOpen}>
-                <Box
-                  sx={{
-                    mt: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Promo code"
-                    value={coupon}
-                    onChange={(e) => {
-                      setCoupon(e.target.value);
-                      setCouponError("");
-                    }}
-                    style={{
-                      flex: 1,
-                      border: couponError
-                        ? "1.5px solid #d32f2f"
-                        : "1.5px solid #ccc",
-                      borderRadius: 6,
-                      outline: "none",
-                      fontSize: 16,
-                      background: "transparent",
-                      padding: 8,
-                      transition: "border 0.2s",
-                    }}
-                  />
-                  {coupon && (
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setCoupon("");
-                        setCouponError("");
-                      }}
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  )}
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    sx={{
-                      borderRadius: 2,
-                      fontWeight: "bold",
-                      px: 2,
-                      minWidth: 70,
-                    }}
-                    disabled={!coupon}
-                    onClick={() => {
-                      setCouponError("We couldn't find this promo");
-                    }}
+            <div className="p-2 border rounded-3 mb-2">
+              <div className="flex items-center justify-between cursor-pointer px-0-5">
+                <div className="flex items-center gap-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-4 h-4 mr-1"
                   >
-                    Apply
-                  </Button>
-                </Box>
-                {couponError && (
-                  <Typography
-                    color="error"
-                    sx={{
-                      mt: 1,
-                      fontSize: 15,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                    }}
-                  >
-                    <CloseIcon sx={{ fontSize: 18, mr: 0.5 }} /> {couponError}
-                  </Typography>
-                )}
-              </Collapse>
-            </Paper>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9.75 17L9 20l-1 1h8.5l1-1-1.7-1.7M9.75 17l.003-4.001M9.75 17l-1.5 1.5M9.75 17l-1.5 1.5"
+                    />
+                  </svg>
+                  <span className="font-bold">Have a promo code?</span>
+                </div>
+              </div>
+            </div>
             {/* Price Details */}
-            <Paper sx={{ p: 2, borderRadius: 3, mb: 2 }}>
-              <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-                Price Details
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1,
-                }}
-              >
-                <Typography>
+            <div className="p-2 border rounded-3 mb-2">
+              <h6 className="font-bold mb-2">Price Details</h6>
+              <div className="flex justify-between mb-1">
+                <span>
                   Subtotal ({cart.cartItems.length} item
                   {cart.cartItems.length > 1 ? "s" : ""})
-                </Typography>
-                <Typography>₹{cart.totalPrice.toFixed(2)}</Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1,
-                }}
-              >
-                <Typography>Delivery Charges</Typography>
-                <Typography color="success.main">FREE</Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mt: 2,
-                  mb: 1,
-                }}
-              >
-                <Typography fontWeight="bold">Total Amount</Typography>
-                <Typography fontWeight="bold">
-                  ₹{cart.totalPrice.toFixed(2)}
-                </Typography>
-              </Box>
-            </Paper>
-            <Paper
-              elevation={3}
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                mb: 2,
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-                maxWidth: 480,
-                mx: { xs: "auto", md: 0 },
-                justifyContent: "space-between",
-              }}
-            >
-              <Box className="cart-total-price">
-                ₹{cart.totalPrice.toFixed(2)}
-              </Box>
-              <Button
-                variant="contained"
-                color="success"
-                sx={{
-                  py: 1.2,
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  borderRadius: 2,
-                  minWidth: 140,
-                }}
+                </span>
+                <span>₹{cart.totalPrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between mb-1">
+                <span>Delivery Charges</span>
+                <span className="text-success-main">FREE</span>
+              </div>
+              <div className="flex justify-between mt-2 mb-1">
+                <span className="font-bold">Total Amount</span>
+                <span className="font-bold">₹{cart.totalPrice.toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="p-2 border rounded-3 mb-2">
+              <button
+                className="contained-btn-success py-1-2 font-bold font-size-1-1rem border-radius-2 min-w-140"
                 onClick={() => navigate("/checkout")}
               >
                 Place Order
-              </Button>
-            </Paper>
-          </Box>
-        </Box>
+              </button>
+            </div>
+          </div>
+        </div>
       ) : (
         // Modern empty cart state
-        <Box sx={{ textAlign: "center", mt: 8 }}>
+        <div className="text-center mt-8">
           <img
             src="/empty-cart-illustration.svg"
             alt="Empty Cart"
-            style={{ width: 160, marginBottom: 24, opacity: 0.8 }}
+            className="w-160 mb-24 opacity-80"
             onError={(e) => (e.currentTarget.style.display = "none")}
           />
-          <Typography
-            variant="h5"
-            sx={{ mt: 2, color: "gray", fontWeight: "bold" }}
-          >
+          <h5 className="mt-2 text-gray font-bold">
             Oops! Your cart is empty. 😢
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 1, color: "gray" }}>
+          </h5>
+          <p className="mt-1 text-gray">
             Looks like you haven't added anything yet.
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{
-              mt: 4,
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: 2,
-              px: 4,
-              py: 1.2,
-            }}
+          </p>
+          <button
+            className="contained-btn-primary mt-4 font-bold font-size-1-1rem border-radius-2 px-4 py-1-2"
             onClick={() => navigate("/products")}
           >
             Start Shopping 🛍️
-          </Button>
-        </Box>
+          </button>
+        </div>
       )}
-    </Container>
+    </div>
   );
 };
 

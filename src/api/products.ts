@@ -1,15 +1,15 @@
-import { ProductListResponse } from "../types/product/ProductListResponse";
-import { ProductResponse } from "../types/product/ProductResponse";
-import { ProductUpsertRequest } from "../types/product/ProductUpsertRequest";
+import { ProductListResponse } from "@/types/product/ProductListResponse";
+import { ProductResponse } from "@/types/product/ProductResponse";
+import { ProductUpsertRequest } from "@/types/product/ProductUpsertRequest";
 import api from "./api";
 
-// ✅ Fetch All Products (returns only primaryImageUrl)
+// Fetch All Products
 export const fetchProducts = async (): Promise<ProductListResponse[]> => {
   const response = await api.get<ProductListResponse[]>("/products");
   return response.data;
 };
 
-// ✅ Fetch Product by ID (returns full media list)
+// Fetch Product by ID
 export const fetchProductById = async (
   id: number
 ): Promise<ProductResponse> => {
@@ -17,7 +17,7 @@ export const fetchProductById = async (
   return response.data;
 };
 
-// ✅ Create New Product (Admin Only)
+// Create New Product
 export const createProduct = async (
   data: ProductUpsertRequest
 ): Promise<ProductResponse> => {
@@ -25,7 +25,7 @@ export const createProduct = async (
   return response.data;
 };
 
-// ✅ Update Product (Admin Only)
+// Update Product
 export const updateProduct = async (
   id: number,
   data: ProductUpsertRequest
@@ -34,7 +34,7 @@ export const updateProduct = async (
   return response.data;
 };
 
-// ✅ Delete Product (Admin Only)
+// Delete Product
 export const deleteProduct = async (id: number): Promise<void> => {
   await api.delete(`/products/${id}`);
 };

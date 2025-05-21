@@ -10,5 +10,5 @@ export interface ProductResponse {
 export interface ProductMediaResponse {
   mediaUrl: string;
   orderIndex: number;
-  type: "Image" | "Video"; // ✅ String Enum for media type
+  type: "Image" | "Video";
 }

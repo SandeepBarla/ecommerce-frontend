@@ -9,5 +9,5 @@ export interface ProductUpsertRequest {
   description: string;
   price: number;
   stock: number;
-  media: ProductMediaRequest[]; // ✅ Multiple media instead of single imageUrl
+  media: ProductMediaRequest[];
 }

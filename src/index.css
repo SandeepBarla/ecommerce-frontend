@@ -1,113 +1,76 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap");
 
-:root {
-  font-family: "Playfair Display", serif;
-  color: #4a2c2a;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap');
 
-/* Ensure full-width layout */
-body {
-  background-color: #faf3e0; /* Elegant beige */
-  margin: 0;
-  padding: 0;
-  min-width: 100vw;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Navbar Styling */
-nav {
-  width: 100%;
-  padding: 10px 20px;
-  background-color: #8b0000;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+@layer base {
+  :root {
+    --background: 35 30% 96%;
+    --foreground: 274 30% 18%;
 
-/* Links */
-a {
-  text-decoration: none;
-  font-weight: 600;
-  color: #8b0000;
-  transition: color 0.3s ease-in-out;
-}
+    --card: 0 0% 100%;
+    --card-foreground: 274 30% 18%;
 
-a:hover {
-  color: #d2042d;
-}
+    --popover: 0 0% 100%;
+    --popover-foreground: 274 30% 18%;
 
-/* Headings */
-h1,
-h2,
-h3 {
-  font-family: "Playfair Display", serif;
-  font-weight: 700;
-  text-align: center;
-}
+    --primary: 270 80% 75%;
+    --primary-foreground: 0 0% 100%;
 
-/* Buttons */
-button {
-  border-radius: 8px;
-  border: 2px solid #8b0000;
-  padding: 0.7em 1.5em;
-  font-size: 1.1em;
-  font-weight: 600;
-  font-family: "Poppins", sans-serif;
-  background-color: #8b0000;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-}
+    --secondary: 45 76% 52%;
+    --secondary-foreground: 0 0% 10%;
 
-button:hover {
-  background-color: #d2042d;
-  border-color: #d2042d;
-}
+    --muted: 35 30% 92%;
+    --muted-foreground: 274 10% 40%;
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  nav {
-    flex-direction: column;
-    text-align: center;
+    --accent: 45 76% 52%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 275 20% 85%;
+    --input: 275 20% 85%;
+    --ring: 270 80% 75%;
+
+    --radius: 0.5rem;
   }
+}
 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
   body {
-    padding: 0;
+    @apply bg-background text-foreground font-sans;
   }
-
-  h1 {
-    font-size: 2em;
-  }
-}
-
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.8em;
-  }
-
-  button {
-    font-size: 1em;
-    padding: 0.5em 1em;
-  }
-}
-/* 💫 Shimmer effect for skeleton loading */
-@keyframes pulse {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
   }
 }
 
-.skeleton {
-  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
-  background-size: 200% 100%;
-  animation: pulse 1.2s infinite ease-in-out;
-  border-radius: 10px;
+@layer components {
+  .ethnic-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .btn-primary {
+    @apply bg-ethnic-purple text-white hover:bg-ethnic-purple/90 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-ethnic-gold text-foreground hover:bg-ethnic-gold/90 transition-colors;
+  }
+  
+  .ethnic-card {
+    @apply bg-white border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .ethnic-input {
+    @apply border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary;
+  }
 }

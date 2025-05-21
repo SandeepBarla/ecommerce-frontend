@@ -1,20 +1,8 @@
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import {
-  Box,
-  Card,
-  CardContent,
-  CardMedia,
-  Container,
-  Grid,
-  IconButton,
-  Typography,
-} from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchFavorites, removeFavorite } from "../../api/favorites";
 import { AuthContext } from "../../context/AuthContext";
 import { FavoriteResponse } from "../../types/favorites/FavoriteResponse";
-import "./Favorites.css";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState<FavoriteResponse[]>([]);
@@ -58,220 +46,121 @@ const Favorites = () => {
 
   if (loading) {
     return (
-      <Container sx={{ px: { xs: 1, md: 5 }, pt: 3, pb: 5 }}>
-        <Typography
-          variant="h4"
-          fontWeight="bold"
-          sx={{ marginBottom: "20px", textAlign: "center" }}
-        >
-          My Favorites ❤️
-        </Typography>
-        <Grid container spacing={2}>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-center">My Favorites ❤️</h1>
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
           {Array.from({ length: 8 }).map((_, index) => (
-            <Grid item key={index} xs={6} sm={4} md={3}>
-              <Card
-                sx={{
-                  width: "100%",
-                  borderRadius: "14px",
-                  backgroundColor: "white",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                  p: 0,
-                }}
-              >
+            <div key={index} className="col-span-2 sm:col-span-4 md:col-span-3">
+              <div className="w-full border rounded-lg bg-white shadow-md p-0">
                 {/* Image Skeleton */}
-                <Box
-                  className="skeleton"
-                  sx={{
-                    aspectRatio: "4/5",
-                    width: "100%",
-                    borderRadius: "14px 14px 0 0",
-                  }}
-                />
+                <div className="skeleton aspect-video w-full h-auto rounded-t-lg"></div>
                 {/* Text Skeletons */}
-                <CardContent sx={{ py: 1.5, px: 1.5 }}>
-                  <Box
-                    className="skeleton"
-                    sx={{ width: "70%", height: 18, mb: 1, borderRadius: 1 }}
-                  />
-                  <Box
-                    className="skeleton"
-                    sx={{ width: "40%", height: 16, borderRadius: 1 }}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
+                <div className="p-4">
+                  <div className="skeleton w-7/10 h-6 mb-2 rounded"></div>
+                  <div className="skeleton w-4/10 h-5 rounded"></div>
+                </div>
+              </div>
+            </div>
           ))}
-        </Grid>
-      </Container>
+        </div>
+      </div>
     );
   }
 
   if (error)
     return (
-      <Typography color="error" textAlign="center" sx={{ marginTop: "20px" }}>
-        {error}
-      </Typography>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-center">My Favorites ❤️</h1>
+        <p className="text-center text-red-500">{error}</p>
+      </div>
     );
 
   return (
-    <Container sx={{ px: { xs: 1, md: 5 }, pt: 3, pb: 5 }}>
-      <Typography
-        variant="h4"
-        fontWeight="bold"
-        sx={{ marginBottom: "20px", textAlign: "center" }}
-      >
-        My Favorites ❤️
-      </Typography>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8 text-center">My Favorites ❤️</h1>
       {favorites.length === 0 ? (
-        <Box
-          sx={{
-            textAlign: "center",
-            padding: "50px",
-            color: "gray",
-            fontSize: "18px",
-          }}
-        >
-          <Typography variant="h5">Oops! No favorites yet. 😢</Typography>
-          <Typography variant="body1" sx={{ marginTop: "10px" }}>
+        <div className="text-center p-10 text-gray-500">
+          <h2 className="text-2xl font-bold">Oops! No favorites yet. 😢</h2>
+          <p className="text-base mt-2">
             Start exploring and add your favorite products! 🎉
-          </Typography>
-          <Box sx={{ marginTop: "20px" }}>
-            <Link to="/products" style={{ textDecoration: "none" }}>
-              <Typography
-                variant="h6"
-                color="primary"
-                sx={{
-                  "&:hover": {
-                    textDecoration: "underline",
-                  },
-                }}
-              >
-                Browse Products →
-              </Typography>
+          </p>
+          <div className="mt-4">
+            <Link to="/products" className="text-blue-500 hover:underline">
+              <h3 className="text-base">Browse Products →</h3>
             </Link>
-          </Box>
-        </Box>
+          </div>
+        </div>
       ) : (
-        <Grid
-          container
-          spacing={2}
-          justifyContent="flex-start"
-          alignItems="stretch"
-        >
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
           {favorites.map((fav) => (
-            <Grid item key={fav.productId} xs={6} sm={4} md={3}>
-              <Box
-                component={Link}
+            <div
+              key={fav.productId}
+              className="col-span-2 sm:col-span-4 md:col-span-3"
+            >
+              <Link
                 to={`/products/${fav.productId}`}
-                sx={{
-                  textDecoration: "none",
-                  color: "inherit",
-                  transition: "transform 0.2s cubic-bezier(.36,2,.57,.5)",
-                  "&:hover": {
-                    transform: "scale(1.04)",
-                    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.12)",
-                  },
-                }}
+                className="text-inherit no-underline transition-transform duration-200 hover:scale-104 hover:shadow-md"
               >
-                <Card
-                  className={
-                    removingId === fav.productId ? "removing-favorite-card" : ""
-                  }
-                  sx={{
-                    width: "100%",
-                    borderRadius: "14px",
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    backgroundColor: "white",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                    p: 0,
-                    transition: "opacity 0.35s, transform 0.35s",
-                  }}
+                <div
+                  className={`w-full border rounded-lg overflow-hidden flex flex-col bg-white shadow-md p-0 transition-opacity duration-350 ${
+                    removingId === fav.productId ? "opacity-50" : ""
+                  }`}
                 >
                   {/* Product Image */}
-                  <Box
-                    sx={{
-                      width: "100%",
-                      aspectRatio: "4/5",
-                      overflow: "hidden",
-                      background: "#f7f7f7",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      position: "relative",
-                    }}
-                  >
-                    <CardMedia
-                      component="img"
-                      image={fav.primaryImageUrl || "/placeholder.png"}
+                  <div className="w-full aspect-video overflow-hidden bg-gray-100 flex items-center justify-center relative">
+                    <img
+                      src={fav.primaryImageUrl || "/placeholder.png"}
                       alt={fav.name}
-                      sx={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        transition: "transform 0.3s",
-                      }}
+                      className="w-full h-full object-cover transition-transform duration-300"
                     />
                     {/* Unmark Favorite Button */}
-                    <IconButton
-                      className={
-                        removingId === fav.productId
-                          ? "removing-favorite-heart"
-                          : ""
-                      }
+                    <button
+                      className={`absolute top-2 right-2 bg-white bg-opacity-90 shadow-sm shadow-red-200 border border-red-200 rounded-full z-10 ${
+                        removingId === fav.productId ? "bg-red-100" : ""
+                      }`}
                       onClick={(e) => {
                         e.preventDefault();
                         handleUnmarkFavorite(fav.productId);
                       }}
-                      sx={{
-                        position: "absolute",
-                        top: 10,
-                        right: 10,
-                        backgroundColor: "rgba(255,255,255,0.9)",
-                        boxShadow: "0 1px 4px #E5393522",
-                        borderRadius: "50%",
-                        zIndex: 2,
-                        "&:hover": {
-                          backgroundColor: "#ffeaea",
-                        },
-                      }}
                     >
-                      <FavoriteIcon sx={{ color: "#E53935", fontSize: 22 }} />
-                    </IconButton>
-                  </Box>
-                  {/* Card Content - Product Details */}
-                  <CardContent sx={{ py: 1.5, px: 1.5, position: "relative" }}>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight="bold"
-                      sx={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        fontSize: "1.05rem",
-                        mb: 0.5,
-                      }}
-                    >
-                      {fav.name}
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight="bold"
-                        sx={{ color: "#222", fontSize: "1.08rem" }}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className={`w-6 h-6 ${
+                          removingId === fav.productId
+                            ? "text-red-500"
+                            : "text-gray-500"
+                        }`}
                       >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5H8.688c-2.59 0-4.688 2.015-4.688 4.5v8.5c0 2.485 2.099 4.5 4.688 4.5h8.688c2.59 0 4.688-2.015 4.688-4.5v-8.5z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  {/* Card Content - Product Details */}
+                  <div className="p-4">
+                    <h2 className="text-base font-bold whitespace-nowrap overflow-hidden text-ellipsis mb-2">
+                      {fav.name}
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-gray-800">
                         ₹{fav.price.toFixed(2)}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Box>
-            </Grid>
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
           ))}
-        </Grid>
+        </div>
       )}
-    </Container>
+    </div>
   );
 };
 
