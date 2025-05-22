@@ -3,6 +3,7 @@ import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Layout from "@/components/layout/Layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useShop } from "@/contexts/ShopContext";
 import { ProductResponse } from "@/types/product/ProductResponse";
 import { useQuery } from "@tanstack/react-query";
@@ -52,7 +53,35 @@ const ProductDetails = () => {
   if (isLoading) {
     return (
       <Layout>
-        <div className="py-20 text-center px-4">Loading...</div>
+        <div className="py-4 px-4 md:py-8 md:px-6 max-w-5xl mx-auto">
+          <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8">
+            {/* Product images skeleton */}
+            <div className="mb-6 md:mb-0">
+              <Skeleton className="w-full aspect-square md:h-[500px] mb-4" />
+              <div className="flex space-x-2 mt-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="w-16 h-16 rounded-md" />
+                ))}
+              </div>
+            </div>
+            {/* Product info skeleton */}
+            <div className="flex flex-col">
+              <div className="flex space-x-2 mb-2">
+                <Skeleton className="w-16 h-6" />
+                <Skeleton className="w-20 h-6" />
+              </div>
+              <Skeleton className="h-8 w-3/4 mb-2" />
+              <Skeleton className="h-6 w-1/2 mb-4" />
+              <Skeleton className="h-5 w-1/3 mb-4" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-5/6 mb-2" />
+              <Skeleton className="h-4 w-2/3 mb-6" />
+              <Skeleton className="h-10 w-full mb-3" />
+              <Skeleton className="h-10 w-full mb-3" />
+              <Skeleton className="h-6 w-1/2 mt-4" />
+            </div>
+          </div>
+        </div>
       </Layout>
     );
   }

@@ -39,7 +39,29 @@ const Index = () => {
 
   const displayProducts = products.map(mapApiProductToCardProduct);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading)
+    return (
+      <Layout>
+        <Hero />
+        <USPSection />
+        <FeaturedProducts
+          title="Our Collection"
+          subtitle="Handpicked lehengas for every occasion"
+          viewAllLink="/category/lehengas"
+          viewAllText="View All Lehengas"
+          loading={true}
+        />
+        <PromotionalBanner />
+        <FeaturedProducts
+          title="New Arrivals"
+          subtitle="Be the first to shop our latest designs"
+          viewAllLink="/new-arrivals"
+          viewAllText="View All New Arrivals"
+          loading={true}
+        />
+        <TestimonialSection />
+      </Layout>
+    );
   if (error) return <div>Error loading products</div>;
 
   return (
@@ -52,6 +74,8 @@ const Index = () => {
         viewAllLink="/category/lehengas"
         viewAllText="View All Lehengas"
         products={displayProducts}
+        loading={false}
+        error={error}
       />
       <PromotionalBanner />
       <FeaturedProducts
@@ -60,6 +84,8 @@ const Index = () => {
         viewAllLink="/new-arrivals"
         viewAllText="View All New Arrivals"
         products={displayProducts}
+        loading={false}
+        error={error}
       />
       <TestimonialSection />
     </Layout>

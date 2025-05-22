@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { addFavorite, fetchFavorites, removeFavorite } from "../api/favorites";
@@ -92,11 +93,11 @@ const Products = () => {
             <div key={index} className="col-span-6 sm:col-span-4 md:col-span-3">
               <div className="w-full border rounded-lg bg-white shadow-lg p-0">
                 {/* 🖼 Image Skeleton */}
-                <div className="skeleton aspect-video w-full h-[200px] rounded-t-lg"></div>
+                <Skeleton className="aspect-video w-full h-[200px] rounded-t-lg" />
                 {/* 📝 Text Skeletons */}
                 <div className="p-4">
-                  <div className="skeleton w-7/10 h-6 mb-2 rounded"></div>
-                  <div className="skeleton w-4/10 h-5 rounded"></div>
+                  <Skeleton className="w-7/10 h-6 mb-2 rounded" />
+                  <Skeleton className="w-4/10 h-5 rounded" />
                 </div>
               </div>
             </div>
