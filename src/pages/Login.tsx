@@ -1,17 +1,19 @@
-
-import { useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { loginWithGoogle } from "@/api/auth";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { login, register, isAuthenticated, isAdmin } = useAuth();
+  const { login, register, isAuthenticated, isAdmin, loginWithGoogleContext } =
+    useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [formData, setFormData] = useState({
     email: "",
@@ -20,7 +22,8 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
-  
+  const navigate = useNavigate();
+
   // Redirect if already authenticated
   if (isAuthenticated) {
     const redirectTo = new URLSearchParams(location.search).get("redirect");
@@ -39,20 +42,23 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
       let success = false;
-      
       if (mode === "login") {
         success = await login(formData.email, formData.password);
       } else {
-        success = await register(formData.name, formData.email, formData.password);
+        success = await register(
+          formData.name,
+          formData.email,
+          formData.password
+        );
       }
-      
-      if (!success) {
+      if (success) {
+        navigate("/");
+      } else {
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch {
       setIsLoading(false);
     }
   };
@@ -133,7 +139,9 @@ const Login = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {mode === "login" ? "Logging in..." : "Creating account..."}
+                      {mode === "login"
+                        ? "Logging in..."
+                        : "Creating account..."}
                     </>
                   ) : mode === "login" ? (
                     "Login"
@@ -143,9 +151,36 @@ const Login = () => {
                 </Button>
               </form>
 
+              {mode === "login" && (
+                <div className="mt-4 flex flex-col items-center">
+                  <span className="text-muted-foreground mb-2">or</span>
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      if (!credentialResponse.credential) return;
+                      setIsLoading(true);
+                      try {
+                        const response = await loginWithGoogle(
+                          credentialResponse.credential
+                        );
+                        loginWithGoogleContext(response);
+                        navigate("/");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    onError={() => {}}
+                    width="100%"
+                    theme="filled_blue"
+                    text="continue_with"
+                    shape="pill"
+                    logo_alignment="center"
+                  />
+                </div>
+              )}
+
               <div className="mt-6 text-center text-sm">
                 <Separator className="my-4" />
-                
+
                 {mode === "login" ? (
                   <p>
                     Don't have an account?{" "}
@@ -169,16 +204,6 @@ const Login = () => {
                     </button>
                   </p>
                 )}
-              </div>
-
-              <div className="mt-6 border-t pt-4">
-                <p className="text-xs text-center text-muted-foreground">
-                  Demo Credentials:
-                </p>
-                <div className="mt-1 text-xs text-center space-y-1">
-                  <p><span className="font-medium">Regular User:</span> user@example.com / password123</p>
-                  <p><span className="font-medium">Admin:</span> admin@ethnicwear.com / admin123</p>
-                </div>
               </div>
             </CardContent>
           </Card>
