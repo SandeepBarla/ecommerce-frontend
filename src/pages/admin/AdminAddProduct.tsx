@@ -11,6 +11,7 @@
 // import { createProduct } from "../../api/products"; // ✅ Correct API import
 // import { AuthContext } from "../../context/AuthContext";
 // import { ProductUpsertRequest } from "../../types/product/ProductUpsertRequest"; // ✅ Use correct type
+import ProductForm from "@/components/admin/ProductForm";
 
 // const AdminAddProduct = () => {
 //   const navigate = useNavigate();
@@ -133,7 +134,7 @@
 // };
 
 const AdminAddProduct = () => {
-  return <div>Add Product</div>;
+  return <ProductForm isNew={true} initialProduct={null} />;
 };
 
 export default AdminAddProduct;
