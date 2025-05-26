@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         id: response.userId.toString(),
         email,
         name: email,
-        role: response.role === "admin" ? "admin" : "user",
+        role: response.role?.toLowerCase() === "admin" ? "admin" : "user",
         addresses: [],
       });
       setAuthToken(response.token);
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         id: response.userId.toString(),
         email,
         name,
-        role: response.role === "admin" ? "admin" : "user",
+        role: response.role?.toLowerCase() === "admin" ? "admin" : "user",
         addresses: [],
       });
       setAuthToken(response.token);
@@ -235,7 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       id: authResponse.userId.toString(),
       email: "", // You may want to fetch this from backend if available
       name: "",
-      role: authResponse.role === "admin" ? "admin" : "user",
+      role: authResponse.role?.toLowerCase() === "admin" ? "admin" : "user",
       addresses: [],
     });
     setAuthToken(authResponse.token);
@@ -249,7 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         user,
         isAuthenticated: !!user,
-        isAdmin: user?.role === "admin",
+        isAdmin: user?.role?.toLowerCase() === "admin",
         login,
         logout,
         register,
