@@ -59,3 +59,12 @@ export const getAllOrders = async (): Promise<OrderResponse[]> => {
   const response = await api.get<OrderResponse[]>(`/orders`);
   return response.data;
 };
+
+// ✅ Get Order Details by ID (Admin Only)
+export const getOrderDetailsById = async (
+  orderId: number
+): Promise<OrderResponse> => {
+  if (!orderId) throw new Error("Order ID is required");
+  const response = await api.get<OrderResponse>(`/orders/${orderId}`);
+  return response.data;
+};

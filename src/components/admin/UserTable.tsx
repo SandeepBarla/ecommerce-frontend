@@ -16,10 +16,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserResponse } from "@/types/user/UserResponse";
-import { Edit, MoreVertical, Search } from "lucide-react";
+import { Edit, MoreVertical, Search, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const UserTable = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +44,10 @@ const UserTable = () => {
       user.fullName.toLowerCase().includes(search.toLowerCase()) ||
       user.email.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleViewOrders = (userId: number) => {
+    navigate(`/admin/orders?userId=${userId}`);
+  };
 
   if (loading) {
     return (
@@ -124,6 +130,12 @@ const UserTable = () => {
                         <DropdownMenuItem>
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Edit User</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleViewOrders(user.id)}
+                        >
+                          <ShoppingBag className="mr-2 h-4 w-4" />
+                          <span>View Orders</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

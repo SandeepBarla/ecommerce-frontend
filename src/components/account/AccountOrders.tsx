@@ -1,109 +1,135 @@
-
-import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getUserOrders } from "@/api/orders";
+import { fetchProductById } from "@/api/products";
 import { Badge } from "@/components/ui/badge";
-import { Eye, ChevronRight, ShoppingBag } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
+import { Eye, ShoppingBag } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import OrderDetails from "./OrderDetails";
 
-// Sample order data (in a real app, this would come from an API)
-const sampleOrders = [
-  {
-    id: "ORD4289",
-    date: "2025-05-12",
-    total: 24999,
-    status: "Delivered",
-    paymentStatus: "Paid",
-    items: [
-      {
-        id: "1",
-        name: "Embroidered Silk Saree",
-        price: 24999,
-        quantity: 1,
-        image: "https://images.unsplash.com/photo-1583391733981-8498408ee4b6?q=80&w=2574"
-      }
-    ],
-    address: {
-      name: "Home",
-      street: "123 Main Street, Apartment 4B",
-      city: "Mumbai",
-      state: "Maharashtra",
-      pincode: "400001",
-      phone: "9876543210"
-    },
-    trackingNumber: "IN4289756HK"
-  },
-  {
-    id: "ORD4163",
-    date: "2025-05-02",
-    total: 15999,
-    status: "Processing",
-    paymentStatus: "Verification Pending",
-    items: [
-      {
-        id: "2",
-        name: "Designer Anarkali Suit",
-        price: 15999,
-        quantity: 1,
-        image: "https://images.unsplash.com/photo-1610030469668-0fb076ad5cd2?q=80&w=2574"
-      }
-    ],
-    address: {
-      name: "Office",
-      street: "456 Business Park, Building C",
-      city: "Bengaluru",
-      state: "Karnataka",
-      pincode: "560001",
-      phone: "9876543210"
-    }
-  },
-  {
-    id: "ORD3972",
-    date: "2025-04-20",
-    total: 49999,
-    status: "Shipped",
-    paymentStatus: "Paid",
-    items: [
-      {
-        id: "3",
-        name: "Bridal Lehenga Choli",
-        price: 49999,
-        quantity: 1,
-        image: "https://images.unsplash.com/photo-1609748340878-81303d781f51?q=80&w=2574"
-      }
-    ],
-    address: {
-      name: "Home",
-      street: "123 Main Street, Apartment 4B",
-      city: "Mumbai",
-      state: "Maharashtra",
-      pincode: "400001",
-      phone: "9876543210"
-    },
-    trackingNumber: "IN3972541HK"
-  }
-];
+interface OrderItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
+interface ProcessedOrder {
+  id: string;
+  date: string;
+  total: number;
+  status: string;
+  paymentStatus: string;
+  items: OrderItem[];
+  address: string;
+  trackingNumber?: string;
+}
 
 const AccountOrders = () => {
+  const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState("all");
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  
+  const [selectedOrder, setSelectedOrder] = useState<ProcessedOrder | null>(
+    null
+  );
+  const [orders, setOrders] = useState<ProcessedOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user?.id) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const userOrders = await getUserOrders(Number(user.id));
+
+        // Process orders and fetch product details
+        const processedOrders: ProcessedOrder[] = [];
+
+        for (const order of userOrders) {
+          const orderItems: OrderItem[] = [];
+
+          // Fetch product details for each order item
+          for (const orderProduct of order.orderProducts) {
+            try {
+              const product = await fetchProductById(orderProduct.productId);
+              orderItems.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                quantity: orderProduct.quantity,
+                image:
+                  product.media?.[0]?.mediaUrl || "/placeholder-product.jpg",
+              });
+            } catch (err) {
+              console.error(
+                `Failed to fetch product ${orderProduct.productId}:`,
+                err
+              );
+              // Add fallback item if product fetch fails
+              orderItems.push({
+                id: orderProduct.productId,
+                name: "Product Not Found",
+                price: 0,
+                quantity: orderProduct.quantity,
+                image: "/placeholder-product.jpg",
+              });
+            }
+          }
+
+          processedOrders.push({
+            id: `ORD${order.id}`,
+            date: order.orderDate,
+            total: order.totalAmount,
+            status: order.orderStatus,
+            paymentStatus: order.paymentStatus || "Paid",
+            items: orderItems,
+            address: order.shippingAddress,
+            trackingNumber:
+              order.trackingNumber && order.trackingNumber !== "Not Assigned"
+                ? order.trackingNumber
+                : undefined,
+          });
+        }
+
+        setOrders(processedOrders);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load orders");
+        toast.error("Failed to load your orders");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user?.id]);
+
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
     }).format(price);
   };
-  
+
   const filterOrders = () => {
-    if (selectedTab === "all") return sampleOrders;
-    return sampleOrders.filter(order => order.status.toLowerCase() === selectedTab);
+    if (selectedTab === "all") return orders;
+    return orders.filter((order) => order.status.toLowerCase() === selectedTab);
   };
-  
+
   const getStatusClass = (status: string) => {
     switch (status.toLowerCase()) {
       case "delivered":
@@ -118,7 +144,7 @@ const AccountOrders = () => {
         return "bg-gray-100 text-gray-800";
     }
   };
-  
+
   const getPaymentStatusClass = (status: string) => {
     if (status.toLowerCase().includes("paid")) {
       return "bg-green-100 text-green-800";
@@ -128,23 +154,61 @@ const AccountOrders = () => {
       return "bg-gray-100 text-gray-800";
     }
   };
-  
-  const handleOrderClick = (order: any) => {
+
+  const handleOrderClick = (order: ProcessedOrder) => {
     setSelectedOrder(order);
     setOpenDialog(true);
   };
-  
+
   const filteredOrders = filterOrders();
-  
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>My Orders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p>Loading your orders...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>My Orders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-red-500">{error}</p>
+            <Button onClick={() => window.location.reload()} className="mt-4">
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle>My Orders</CardTitle>
         </CardHeader>
-        
+
         <CardContent>
-          <Tabs defaultValue="all" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+          <Tabs
+            defaultValue="all"
+            value={selectedTab}
+            onValueChange={setSelectedTab}
+            className="w-full"
+          >
             <TabsList className="mb-4 flex w-full overflow-x-auto">
               <TabsTrigger value="all">All Orders</TabsTrigger>
               <TabsTrigger value="processing">Processing</TabsTrigger>
@@ -152,25 +216,28 @@ const AccountOrders = () => {
               <TabsTrigger value="delivered">Delivered</TabsTrigger>
               <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value={selectedTab} className="mt-0">
               {filteredOrders.length === 0 ? (
                 <div className="text-center py-8">
                   <ShoppingBag className="w-12 h-12 mx-auto text-muted-foreground opacity-50 mb-3" />
                   <h3 className="font-medium text-lg mb-1">No orders found</h3>
                   <p className="text-muted-foreground mb-4">
-                    {selectedTab === "all" 
-                      ? "You haven't placed any orders yet" 
+                    {selectedTab === "all"
+                      ? "You haven't placed any orders yet"
                       : `You don't have any ${selectedTab} orders`}
                   </p>
-                  <Button asChild className="bg-ethnic-purple hover:bg-ethnic-purple/90">
+                  <Button
+                    asChild
+                    className="bg-ethnic-purple hover:bg-ethnic-purple/90"
+                  >
                     <a href="/">Shop Now</a>
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {filteredOrders.map((order) => (
-                    <div 
+                    <div
                       key={order.id}
                       className="border rounded-md p-4 hover:border-ethnic-purple transition-colors cursor-pointer"
                       onClick={() => handleOrderClick(order)}
@@ -179,35 +246,51 @@ const AccountOrders = () => {
                         <div>
                           <p className="font-medium">{order.id}</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(order.date).toLocaleDateString(undefined, { 
-                              year: 'numeric', 
-                              month: 'short', 
-                              day: 'numeric' 
-                            })}
+                            {new Date(order.date).toLocaleDateString(
+                              undefined,
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )}
                           </p>
                         </div>
-                        
+
                         <div className="flex flex-wrap gap-2">
                           <Badge className={getStatusClass(order.status)}>
                             {order.status}
                           </Badge>
-                          <Badge className={getPaymentStatusClass(order.paymentStatus)}>
+                          <Badge
+                            className={getPaymentStatusClass(
+                              order.paymentStatus
+                            )}
+                          >
                             {order.paymentStatus}
                           </Badge>
                         </div>
                       </div>
-                      
+
                       <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center">
                           <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 mr-3">
-                            <img 
-                              src={order.items[0].image} 
-                              alt={order.items[0].name}
+                            <img
+                              src={
+                                order.items[0]?.image ||
+                                "/placeholder-product.jpg"
+                              }
+                              alt={order.items[0]?.name || "Product"}
                               className="h-full w-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "/placeholder-product.jpg";
+                              }}
                             />
                           </div>
                           <div>
-                            <p className="text-sm font-medium line-clamp-1">{order.items[0].name}</p>
+                            <p className="text-sm font-medium line-clamp-1">
+                              {order.items[0]?.name || "Product"}
+                            </p>
                             {order.items.length > 1 && (
                               <p className="text-xs text-muted-foreground">
                                 +{order.items.length - 1} more item(s)
@@ -215,9 +298,11 @@ const AccountOrders = () => {
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between w-full sm:w-auto mt-2 sm:mt-0">
-                          <p className="font-medium">{formatPrice(order.total)}</p>
+                          <p className="font-medium">
+                            {formatPrice(order.total)}
+                          </p>
                           <Button variant="ghost" size="sm" className="ml-4">
                             <Eye size={16} className="mr-1" /> View
                           </Button>
@@ -231,13 +316,13 @@ const AccountOrders = () => {
           </Tabs>
         </CardContent>
       </Card>
-      
+
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
           </DialogHeader>
-          
+
           {selectedOrder && <OrderDetails order={selectedOrder} />}
         </DialogContent>
       </Dialog>
