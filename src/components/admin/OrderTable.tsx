@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -207,7 +208,101 @@ const OrderTable = () => {
 
       {/* Loading/Error */}
       {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading orders...</div>
+        <>
+          {/* Desktop Table Loading */}
+          <div className="hidden md:block rounded-md border bg-white overflow-hidden shadow-sm">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-12" />
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <Skeleton className="h-4 w-24 mb-1" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-8 w-24 rounded" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-8 w-8 rounded ml-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card Loading */}
+          <div className="md:hidden space-y-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index} className="p-4">
+                <CardContent className="p-0 space-y-3">
+                  {/* Order ID and Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-4 w-8" />
+                    </div>
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
+
+                  {/* Customer Info */}
+                  <div className="flex items-start gap-2">
+                    <Skeleton className="h-4 w-4 mt-0.5 rounded" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-24 mb-1" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+
+                  {/* Date and Total */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4 rounded" />
+                      <div>
+                        <Skeleton className="h-3 w-8 mb-1" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4 rounded" />
+                      <div>
+                        <Skeleton className="h-3 w-8 mb-1" />
+                        <Skeleton className="h-4 w-12" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <Skeleton className="h-3 w-10 mb-1" />
+                    <Skeleton className="h-8 w-full rounded" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
       ) : error ? (
         <div className="text-center py-8 text-red-500">{error}</div>
       ) : (

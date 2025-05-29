@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -51,8 +52,44 @@ const UserTable = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-40">
-        <span className="text-ethnic-purple">Loading users...</span>
+      <div className="space-y-4">
+        {/* Search Skeleton */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Skeleton className="h-10 w-full rounded" />
+          </div>
+        </div>
+
+        {/* Users table skeleton */}
+        <div className="rounded-md border bg-white overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead className="hidden md:table-cell">Role</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 6 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <Skeleton className="h-5 w-32 mb-1" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="h-8 w-8 rounded ml-auto" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     );
   }

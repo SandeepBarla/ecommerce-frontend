@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, ShoppingBag } from "lucide-react";
@@ -169,9 +170,51 @@ const AccountOrders = () => {
           <CardTitle>My Orders</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <p>Loading your orders...</p>
-          </div>
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="mb-4 flex w-full overflow-x-auto">
+              <TabsTrigger value="all">All Orders</TabsTrigger>
+              <TabsTrigger value="processing">Processing</TabsTrigger>
+              <TabsTrigger value="shipped">Shipped</TabsTrigger>
+              <TabsTrigger value="delivered">Delivered</TabsTrigger>
+              <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="all" className="mt-0">
+              <div className="space-y-4">
+                {/* Order Card Skeletons */}
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="border rounded-md p-4">
+                    {/* Order Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                      <div>
+                        <Skeleton className="h-5 w-20 mb-2" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                      </div>
+                    </div>
+
+                    {/* Product and Price Info */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center">
+                        <Skeleton className="h-12 w-12 rounded-md mr-3" />
+                        <div>
+                          <Skeleton className="h-4 w-32 mb-1" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between w-full sm:w-auto mt-2 sm:mt-0">
+                        <Skeleton className="h-5 w-16 mr-4" />
+                        <Skeleton className="h-8 w-16" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     );
