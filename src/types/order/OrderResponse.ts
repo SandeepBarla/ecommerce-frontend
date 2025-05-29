@@ -5,6 +5,7 @@ export interface OrderProductResponse {
 
 export interface OrderResponse {
   id: number;
+  userId: number;
   orderProducts: OrderProductResponse[];
   totalAmount: number;
   paymentStatus: string;

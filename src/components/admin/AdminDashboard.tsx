@@ -1,28 +1,46 @@
-
-import { useNavigate } from "react-router-dom";
-import { useShop } from "@/contexts/ShopContext";
+import { getAllOrders } from "@/api/orders";
+import { fetchProducts } from "@/api/products";
+import { getAllUsers } from "@/api/users";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { OrderResponse } from "@/types/order/OrderResponse";
+import { ProductListResponse } from "@/types/product/ProductListResponse";
+import { UserResponse } from "@/types/user/UserResponse";
 import { BarChart, Package, ShoppingBag, Users } from "lucide-react";
-
-// Sample orders for demo
-const sampleOrders = [
-  { id: "ORD-001", customer: "Anjali Patel", total: 24999, status: "delivered" },
-  { id: "ORD-002", customer: "Priya Singh", total: 15999, status: "processing" },
-  { id: "ORD-003", customer: "Meera Sharma", total: 49999, status: "pending" },
-  { id: "ORD-004", customer: "Riya Gupta", total: 12999, status: "shipped" },
-];
-
-// Sample users for demo
-const sampleUsers = [
-  { id: "user1", name: "Sample User", email: "user@example.com" },
-  { id: "user2", name: "Priya Singh", email: "priya@example.com" },
-  { id: "user3", name: "Rahul Kumar", email: "rahul@example.com" },
-];
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
-  const { products } = useShop();
   const navigate = useNavigate();
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [users, setUsers] = useState<UserResponse[]>([]);
+  const [products, setProducts] = useState<ProductListResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [ordersData, usersData, productsData] = await Promise.all([
+          getAllOrders(),
+          getAllUsers(),
+          fetchProducts(),
+        ]);
+        setOrders(ordersData);
+        setUsers(usersData);
+        setProducts(productsData);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load dashboard data"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Stats cards with navigation
   const stats = [
@@ -30,42 +48,55 @@ const AdminDashboard = () => {
       title: "Total Products",
       value: products.length,
       icon: <ShoppingBag className="h-8 w-8 text-ethnic-purple" />,
-      path: "/admin/products"
+      path: "/admin/products",
     },
     {
       title: "Total Orders",
-      value: sampleOrders.length,
+      value: orders.length,
       icon: <Package className="h-8 w-8 text-ethnic-purple" />,
-      path: "/admin/orders"
+      path: "/admin/orders",
     },
     {
       title: "Registered Users",
-      value: sampleUsers.length,
+      value: users.length,
       icon: <Users className="h-8 w-8 text-ethnic-purple" />,
-      path: "/admin/users"
+      path: "/admin/users",
     },
     {
       title: "Total Revenue",
-      value: "₹103,996",
+      value: `₹${orders
+        .reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+        .toLocaleString()}`,
       icon: <BarChart className="h-8 w-8 text-ethnic-purple" />,
-      path: "/admin"
+      path: "/admin",
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="text-center py-8 text-gray-500">Loading dashboard...</div>
+    );
+  }
+  if (error) {
+    return <div className="text-center py-8 text-red-500">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-800">Sakhya Dashboard</h1>
-      
+
       {/* Stats Cards - Now clickable */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, index) => (
-          <Card 
-            key={index} 
+          <Card
+            key={index}
             className="border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-shadow"
             onClick={() => navigate(stat.path)}
           >
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">{stat.title}</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500">
+                {stat.title}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex justify-between items-center">
@@ -79,8 +110,8 @@ const AdminDashboard = () => {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Recent Orders Card - now clickable */}
-        <Card 
-          className="border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-shadow" 
+        <Card
+          className="border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-shadow"
           onClick={() => navigate("/admin/orders")}
         >
           <CardHeader>
@@ -88,28 +119,46 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {sampleOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{order.id}</p>
-                    <p className="text-sm text-gray-500">{order.customer}</p>
+              {orders.slice(0, 5).map((order) => {
+                const user = users.find((u) => u.id === order.userId);
+                return (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="font-medium">{order.id}</p>
+                      <p className="text-sm text-gray-500">
+                        {user ? user.fullName : "-"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">
+                        ₹{order.totalAmount?.toLocaleString()}
+                      </p>
+                      <p
+                        className={`text-sm capitalize ${
+                          order.orderStatus === "delivered"
+                            ? "text-green-600"
+                            : order.orderStatus === "processing"
+                            ? "text-blue-600"
+                            : order.orderStatus === "shipped"
+                            ? "text-purple-600"
+                            : "text-yellow-600"
+                        }`}
+                      >
+                        {order.orderStatus}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">₹{order.total.toLocaleString()}</p>
-                    <p className={`text-sm capitalize ${
-                      order.status === 'delivered' ? 'text-green-600' :
-                      order.status === 'processing' ? 'text-blue-600' :
-                      order.status === 'shipped' ? 'text-purple-600' : 'text-yellow-600'
-                    }`}>{order.status}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
 
         {/* Popular Products Card - now clickable */}
-        <Card 
+        <Card
           className="border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-shadow"
           onClick={() => navigate("/admin/products")}
         >
@@ -119,21 +168,28 @@ const AdminDashboard = () => {
           <CardContent>
             <div className="space-y-4">
               {products.slice(0, 4).map((product) => (
-                <div key={product.id} className="flex items-center justify-between">
+                <div
+                  key={product.id}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center gap-2">
                     <div className="h-10 w-10 rounded overflow-hidden">
-                      <img 
-                        src={product.images[0]} 
-                        alt={product.name} 
+                      <img
+                        src={product.primaryImageUrl}
+                        alt={product.name}
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <p className="font-medium truncate max-w-[200px]">{product.name}</p>
+                    <p className="font-medium truncate max-w-[200px]">
+                      {product.name}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">₹{product.price.toLocaleString()}</p>
+                    <p className="font-medium">
+                      ₹{product.price.toLocaleString()}
+                    </p>
                     <div className="w-24">
-                      <Progress value={75 - (parseInt(product.id) * 10)} className="h-1" />
+                      <Progress value={75 - product.id * 10} className="h-1" />
                     </div>
                   </div>
                 </div>
