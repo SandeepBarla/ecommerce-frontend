@@ -1,5 +1,4 @@
 import { fetchProducts } from "@/api/products";
-import AdminLayout from "@/components/admin/AdminLayout";
 import ProductTable from "@/components/admin/ProductTable";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,7 +50,7 @@ const AdminProducts = () => {
   if (error) return <div>Error loading products</div>;
 
   return (
-    <AdminLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">
           Product Management
@@ -66,7 +65,7 @@ const AdminProducts = () => {
       </div>
 
       <ProductTable products={displayProducts} />
-    </AdminLayout>
+    </>
   );
 };
 

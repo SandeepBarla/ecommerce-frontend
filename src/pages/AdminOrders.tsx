@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/admin/AdminLayout";
 import OrderTable from "@/components/admin/OrderTable";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
@@ -19,14 +18,14 @@ const AdminOrders = () => {
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">
           Order Management
         </h1>
       </div>
       <OrderTable />
-    </AdminLayout>
+    </>
   );
 };
 

@@ -7,40 +7,24 @@ import { OrderResponse } from "@/types/order/OrderResponse";
 import { ProductListResponse } from "@/types/product/ProductListResponse";
 import { UserResponse } from "@/types/user/UserResponse";
 import { BarChart, Package, ShoppingBag, Users } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
+
+export async function adminDashboardLoader() {
+  const [orders, users, products] = await Promise.all([
+    getAllOrders(),
+    getAllUsers(),
+    fetchProducts(),
+  ]);
+  return { orders, users, products };
+}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<OrderResponse[]>([]);
-  const [users, setUsers] = useState<UserResponse[]>([]);
-  const [products, setProducts] = useState<ProductListResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [ordersData, usersData, productsData] = await Promise.all([
-          getAllOrders(),
-          getAllUsers(),
-          fetchProducts(),
-        ]);
-        setOrders(ordersData);
-        setUsers(usersData);
-        setProducts(productsData);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load dashboard data"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const { orders, users, products } = useLoaderData() as {
+    orders: OrderResponse[];
+    users: UserResponse[];
+    products: ProductListResponse[];
+  };
 
   // Stats cards with navigation
   const stats = [
@@ -71,15 +55,6 @@ const AdminDashboard = () => {
       path: "/admin",
     },
   ];
-
-  if (loading) {
-    return (
-      <div className="text-center py-8 text-gray-500">Loading dashboard...</div>
-    );
-  }
-  if (error) {
-    return <div className="text-center py-8 text-red-500">{error}</div>;
-  }
 
   return (
     <div className="space-y-6">

@@ -1,9 +1,7 @@
-
-import { useEffect } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import AdminLayout from "@/components/admin/AdminLayout";
-import AdminDashboard from "@/components/admin/AdminDashboard";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 
 const Admin = () => {
   const { isAdmin, isAuthenticated } = useAuth();
@@ -21,7 +19,7 @@ const Admin = () => {
 
   return (
     <AdminLayout>
-      <AdminDashboard />
+      <Outlet />
     </AdminLayout>
   );
 };

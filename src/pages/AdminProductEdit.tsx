@@ -1,5 +1,4 @@
 import { fetchProductById } from "@/api/products";
-import AdminLayout from "@/components/admin/AdminLayout";
 import ProductForm from "@/components/admin/ProductForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProductResponse } from "@/types/product/ProductResponse";
@@ -58,7 +57,7 @@ const AdminProductEdit = () => {
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">
           {isNewProduct ? "Add New Product" : "Edit Product"}
@@ -70,7 +69,7 @@ const AdminProductEdit = () => {
         isNew={isNewProduct}
         productId={productId}
       />
-    </AdminLayout>
+    </>
   );
 };
 
