@@ -45,7 +45,6 @@ interface ShopContextType {
   featuredProducts: Product[];
   newArrivals: Product[];
   cartItems: CartItem[];
-  wishlistItems: Product[];
   addToCart: (
     product: Product,
     quantity: number,
@@ -57,9 +56,6 @@ interface ShopContextType {
     productId: string,
     quantity: number
   ) => Promise<void>;
-  addToWishlist: (product: Product) => void;
-  removeFromWishlist: (productId: string) => void;
-  isInWishlist: (productId: string) => boolean;
   clearCart: () => Promise<void>;
   cartTotal: number;
   cartCount: number;
@@ -190,15 +186,12 @@ const sampleProducts: Product[] = [
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isCartLoading, setIsCartLoading] = useState(false);
-
-  // Filter products for different sections
-  const featuredProducts = products.filter((product) => product.isFeatured);
-  const newArrivals = products.filter((product) => product.isNew);
+  const [isCartLoading, setIsCartLoading] = useState<boolean>(false);
 
   // Load products on mount
   useEffect(() => {
@@ -227,10 +220,18 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({
           discount: undefined,
         }));
         setProducts(convertedProducts);
+        setFeaturedProducts(
+          convertedProducts.filter((product) => product.isFeatured)
+        );
+        setNewArrivals(convertedProducts.filter((product) => product.isNew));
       } catch (error) {
         console.error("Failed to load products:", error);
         // Fallback to sample products
         setProducts(sampleProducts);
+        setFeaturedProducts(
+          sampleProducts.filter((product) => product.isFeatured)
+        );
+        setNewArrivals(sampleProducts.filter((product) => product.isNew));
       }
     };
     loadProducts();
@@ -292,19 +293,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [isAuthenticated, user?.id, convertApiCartToLocal]);
 
-  // Load cart and wishlist on mount and when auth status changes
+  // Load cart on mount and when auth status changes
   useEffect(() => {
     refreshCart();
-
-    // Load wishlist from localStorage
-    const savedWishlist = localStorage.getItem("wishlist");
-    if (savedWishlist) {
-      try {
-        setWishlistItems(JSON.parse(savedWishlist));
-      } catch {
-        console.error("Error parsing wishlist from localStorage");
-      }
-    }
   }, [refreshCart]);
 
   // Save to localStorage for non-authenticated users
@@ -313,10 +304,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem("cart", JSON.stringify(cartItems));
     }
   }, [cartItems, isAuthenticated]);
-
-  useEffect(() => {
-    localStorage.setItem("wishlist", JSON.stringify(wishlistItems));
-  }, [wishlistItems]);
 
   const addToCart = async (
     product: Product,
@@ -428,24 +415,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const addToWishlist = (product: Product) => {
-    if (!isInWishlist(product.id)) {
-      setWishlistItems([...wishlistItems, product]);
-      toast.success("Added to wishlist");
-    } else {
-      removeFromWishlist(product.id);
-    }
-  };
-
-  const removeFromWishlist = (productId: string) => {
-    setWishlistItems(wishlistItems.filter((item) => item.id !== productId));
-    toast.info("Removed from wishlist");
-  };
-
-  const isInWishlist = (productId: string) => {
-    return wishlistItems.some((item) => item.id === productId);
-  };
-
   const clearCart = async () => {
     if (isAuthenticated && user?.id) {
       // Use API for authenticated users
@@ -483,13 +452,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({
         featuredProducts,
         newArrivals,
         cartItems,
-        wishlistItems,
         addToCart,
         removeFromCart,
         updateCartItemQuantity,
-        addToWishlist,
-        removeFromWishlist,
-        isInWishlist,
         clearCart,
         cartTotal,
         cartCount,

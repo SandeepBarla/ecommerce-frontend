@@ -118,6 +118,11 @@ const Header = () => {
               aria-label="Wishlist"
             >
               <Heart size={18} />
+              {(user?.favoriteProductIds?.length || 0) > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-ethnic-gold text-foreground text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                  {user?.favoriteProductIds?.length}
+                </Badge>
+              )}
             </Link>
 
             <Link
@@ -278,8 +283,13 @@ const Header = () => {
                     className="flex items-center space-x-4 py-4 text-gray-800 hover:text-ethnic-purple transition-all duration-200 group rounded-xl hover:bg-purple-50/50"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-ethnic-purple/10 to-purple-100/50 rounded-xl group-hover:scale-110 transition-transform duration-200">
+                    <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-ethnic-purple/10 to-purple-100/50 rounded-xl group-hover:scale-110 transition-transform duration-200 relative">
                       <Heart size={20} className="text-ethnic-purple" />
+                      {(user?.favoriteProductIds?.length || 0) > 0 && (
+                        <Badge className="absolute -top-1 -right-1 bg-ethnic-gold text-white text-xs h-5 w-5 flex items-center justify-center rounded-full border-2 border-white">
+                          {user?.favoriteProductIds?.length}
+                        </Badge>
+                      )}
                     </div>
                     <span className="text-lg font-medium">Wishlist</span>
                   </Link>

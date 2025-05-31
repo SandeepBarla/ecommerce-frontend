@@ -64,7 +64,7 @@ interface AuthContextType {
     userId: number;
     token: string;
     role: string;
-  }) => void;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -381,23 +381,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const loginWithGoogleContext = (authResponse: {
+  const loginWithGoogleContext = async (authResponse: {
     userId: number;
     token: string;
     role: string;
   }) => {
-    setUser({
-      id: authResponse.userId.toString(),
-      email: "", // You may want to fetch this from backend if available
-      name: "",
-      role: authResponse.role?.toLowerCase() === "admin" ? "admin" : "user",
-      addresses: [],
-      favoriteProductIds: [],
-    });
-    setAuthToken(authResponse.token);
-    localStorage.setItem("token", authResponse.token);
-    localStorage.setItem("userId", authResponse.userId.toString());
-    toast.success("Logged in with Google successfully");
+    try {
+      setAuthToken(authResponse.token);
+      localStorage.setItem("token", authResponse.token);
+      localStorage.setItem("userId", authResponse.userId.toString());
+
+      // Fetch complete user data including favorites and addresses
+      const userResponse = await getUserById(authResponse.userId);
+      const addressesResponse = await getUserAddresses(authResponse.userId);
+      const favoritesResponse = await fetchFavorites(authResponse.userId);
+
+      setUser({
+        id: authResponse.userId.toString(),
+        email: userResponse.email,
+        name: userResponse.fullName,
+        phone: userResponse.phone,
+        role: authResponse.role?.toLowerCase() === "admin" ? "admin" : "user",
+        addresses: addressesResponse.map((addr) => ({
+          id: addr.id.toString(),
+          name: addr.name,
+          street: addr.street,
+          city: addr.city,
+          state: addr.state,
+          pincode: addr.pincode,
+          phone: addr.phone,
+          isDefault: addr.isDefault,
+        })),
+        favoriteProductIds: favoritesResponse.map((fav) => fav.productId),
+      });
+
+      toast.success("Logged in with Google successfully");
+    } catch (error) {
+      console.error("Error loading user data after Google login:", error);
+      toast.error("Failed to load user data");
+    }
   };
 
   return (
