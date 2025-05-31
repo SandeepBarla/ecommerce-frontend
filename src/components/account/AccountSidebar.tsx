@@ -1,8 +1,7 @@
-
-import { User, MapPin, ShoppingBag, LogOut } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { LogOut, MapPin, Settings, ShoppingBag, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface AccountSidebarProps {
@@ -12,26 +11,36 @@ interface AccountSidebarProps {
 
 const AccountSidebar = ({ activeTab, setActiveTab }: AccountSidebarProps) => {
   const { user, logout } = useAuth();
-  
+
   const menuItems = [
     {
       id: "profile",
       name: "My Profile",
       icon: User,
-      path: "/account"
+      path: "/account",
     },
     {
       id: "addresses",
       name: "My Addresses",
       icon: MapPin,
-      path: "/account/addresses"
+      path: "/account/addresses",
     },
     {
       id: "orders",
       name: "My Orders",
       icon: ShoppingBag,
-      path: "/account/orders"
-    }
+      path: "/account/orders",
+    },
+    ...(user?.role === "admin"
+      ? [
+          {
+            id: "admin",
+            name: "Admin Dashboard",
+            icon: Settings,
+            path: "/admin",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -40,19 +49,22 @@ const AccountSidebar = ({ activeTab, setActiveTab }: AccountSidebarProps) => {
         <h2 className="text-lg font-medium">{user?.name}</h2>
         <p className="text-sm text-muted-foreground">{user?.email}</p>
       </div>
-      
+
       <nav className="space-y-1">
         {menuItems.map((item) => (
-          <Link 
+          <Link
             key={item.id}
             to={item.path}
             onClick={(e) => {
+              if (item.id === "admin") {
+                return;
+              }
               e.preventDefault();
               setActiveTab(item.id);
-              window.history.pushState(null, '', item.path);
+              window.history.pushState(null, "", item.path);
             }}
             className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
-              activeTab === item.id 
+              activeTab === item.id
                 ? "bg-ethnic-purple/10 text-ethnic-purple font-medium"
                 : "hover:bg-muted"
             }`}
@@ -62,10 +74,10 @@ const AccountSidebar = ({ activeTab, setActiveTab }: AccountSidebarProps) => {
           </Link>
         ))}
       </nav>
-      
+
       <div className="mt-6 pt-4 border-t">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="w-full justify-start text-muted-foreground hover:text-destructive"
           onClick={logout}
         >

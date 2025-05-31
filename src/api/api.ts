@@ -16,4 +16,28 @@ export const setAuthToken = (token: string | null) => {
   }
 };
 
+// Response interceptor to handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle 401 Unauthorized responses
+    if (error.response?.status === 401) {
+      // Clear all authentication data
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("role");
+
+      // Clear the authorization header
+      setAuthToken(null);
+
+      // Reload the page to reset the application state
+      // This ensures all auth contexts are cleared and user sees login screen
+      window.location.reload();
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;

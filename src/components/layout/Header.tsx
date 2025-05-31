@@ -11,6 +11,7 @@ import {
   Menu,
   Package,
   Search,
+  Settings,
   ShoppingCart,
   Tag,
   User,
@@ -133,47 +134,13 @@ const Header = () => {
             </Link>
 
             {isAuthenticated ? (
-              <div className="relative group">
-                <Link
-                  to="/account"
-                  className="p-1 hover:text-ethnic-purple transition-colors"
-                  aria-label="Account"
-                >
-                  <User size={18} />
-                </Link>
-                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden z-20 hidden group-hover:block">
-                  <div className="p-3 border-b border-gray-100">
-                    <p className="font-medium">{user?.name}</p>
-                    <p className="text-sm text-gray-500">{user?.email}</p>
-                  </div>
-                  <Link
-                    to="/account"
-                    className="block px-4 py-2 hover:bg-gray-50 transition-colors"
-                  >
-                    My Account
-                  </Link>
-                  <Link
-                    to="/account/orders"
-                    className="block px-4 py-2 hover:bg-gray-50 transition-colors"
-                  >
-                    My Orders
-                  </Link>
-                  {user?.role === "admin" && (
-                    <Link
-                      to="/admin"
-                      className="block px-4 py-2 hover:bg-gray-50 transition-colors"
-                    >
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  <button
-                    onClick={logout}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
+              <Link
+                to="/account"
+                className="p-1 hover:text-ethnic-purple transition-colors"
+                aria-label="Account"
+              >
+                <User size={18} />
+              </Link>
             ) : (
               <Link to="/login">
                 <Button
@@ -287,6 +254,23 @@ const Header = () => {
                     <span className="text-lg font-medium">My Account</span>
                   </Link>
                 </div>
+
+                {user?.role === "admin" && (
+                  <div className="px-6">
+                    <Link
+                      to="/admin"
+                      className="flex items-center space-x-4 py-4 text-gray-800 hover:text-ethnic-purple transition-all duration-200 group rounded-xl hover:bg-purple-50/50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-ethnic-purple/10 to-purple-100/50 rounded-xl group-hover:scale-110 transition-transform duration-200">
+                        <Settings size={20} className="text-ethnic-purple" />
+                      </div>
+                      <span className="text-lg font-medium">
+                        Admin Dashboard
+                      </span>
+                    </Link>
+                  </div>
+                )}
 
                 <div className="px-6">
                   <Link
