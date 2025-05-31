@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Heart, Share2, Star } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 function mapApiProductToCardProduct(apiProduct: ProductResponse | undefined) {
   if (!apiProduct) return undefined;
@@ -99,13 +100,18 @@ const ProductDetails = () => {
     );
   }
 
-  const handleAddToCart = () => {
-    addToCart(
-      uiProduct,
-      quantity,
-      "Free Size",
-      uiProduct.colors[0] || "Default"
-    );
+  const handleAddToCart = async () => {
+    try {
+      await addToCart(
+        uiProduct,
+        quantity,
+        "Free Size", // Default size
+        uiProduct.colors[0] || "Default" // Default color
+      );
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      toast.error("Failed to add item to cart");
+    }
   };
 
   const formatPrice = (price: number) => {
