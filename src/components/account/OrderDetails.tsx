@@ -1,10 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { OrderResponse } from "@/types/order/OrderResponse";
-import { CheckCircle, Package, Truck } from "lucide-react";
+import { CheckCircle, Package, Receipt, Truck } from "lucide-react";
 
 interface OrderDetailsProps {
-  order: OrderResponse & {
+  order: {
+    id: string | number;
+    userId?: number;
+    addressId?: number;
     items: Array<{
       id: number;
       name: string;
@@ -13,8 +15,11 @@ interface OrderDetailsProps {
       price: number;
     }>;
     status: string;
+    paymentStatus?: string;
     date: string;
     total: number;
+    trackingNumber?: string;
+    paymentProofUrl?: string;
   };
 }
 
@@ -59,13 +64,15 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
           <div className="flex items-center">
             <h3 className="text-lg font-medium">{order.id}</h3>
             <Badge className={getStatusClass(order.status) + " ml-2"}>
-              {order.status}
+              Order: {order.status}
             </Badge>
-            <Badge
-              className={getPaymentStatusClass(order.paymentStatus) + " ml-2"}
-            >
-              {order.paymentStatus}
-            </Badge>
+            {order.paymentStatus && (
+              <Badge
+                className={getPaymentStatusClass(order.paymentStatus) + " ml-2"}
+              >
+                Payment: {order.paymentStatus}
+              </Badge>
+            )}
           </div>
           <p className="text-sm text-muted-foreground mt-1">
             Ordered on{" "}
@@ -106,6 +113,33 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
           )}
         </div>
       ) : null}
+
+      {/* Payment Proof Section */}
+      {order.paymentProofUrl && (
+        <div className="bg-muted p-4 rounded-md">
+          <h4 className="font-medium mb-3 flex items-center">
+            <Receipt size={18} className="mr-2" /> Payment Proof
+          </h4>
+          <div className="flex items-start gap-3">
+            <div className="bg-white p-2 rounded-md shadow-sm">
+              <img
+                src={order.paymentProofUrl}
+                alt="Payment Proof"
+                className="w-32 h-24 object-cover rounded cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => window.open(order.paymentProofUrl, "_blank")}
+              />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-green-700">
+                Payment screenshot uploaded
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Click image to view full size
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <h4 className="font-medium mb-3">Items</h4>

@@ -34,6 +34,7 @@ interface ProcessedOrder {
   items: OrderItem[];
   address: string;
   trackingNumber?: string;
+  paymentProofUrl?: string;
 }
 
 const AccountOrders = () => {
@@ -98,11 +99,12 @@ const AccountOrders = () => {
             status: order.orderStatus,
             paymentStatus: order.paymentStatus || "Paid",
             items: orderItems,
-            address: order.shippingAddress,
+            address: `Address ID: ${order.addressId || "Not specified"}`,
             trackingNumber:
               order.trackingNumber && order.trackingNumber !== "Not Assigned"
                 ? order.trackingNumber
                 : undefined,
+            paymentProofUrl: order.paymentProofUrl,
           });
         }
 
@@ -302,14 +304,14 @@ const AccountOrders = () => {
 
                         <div className="flex flex-wrap gap-2">
                           <Badge className={getStatusClass(order.status)}>
-                            {order.status}
+                            Order: {order.status}
                           </Badge>
                           <Badge
                             className={getPaymentStatusClass(
                               order.paymentStatus
                             )}
                           >
-                            {order.paymentStatus}
+                            Payment: {order.paymentStatus}
                           </Badge>
                         </div>
                       </div>
