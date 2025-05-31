@@ -6,7 +6,8 @@ export interface OrderProductRequest {
 export interface OrderCreateRequest {
   orderProducts: OrderProductRequest[];
   totalAmount: number;
-  shippingAddress: string;
+  addressId?: number; // Foreign key to Address instead of string
+  paymentProofUrl?: string; // Cloudinary URL for payment proof image
 }
 
 export interface OrderStatusUpdateRequest {

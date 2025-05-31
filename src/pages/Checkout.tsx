@@ -1,11 +1,14 @@
+import { placeOrder } from "@/api/orders";
 import AddressSelector from "@/components/checkout/AddressSelector";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CloudinaryUpload } from "@/components/ui/CloudinaryUpload";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useShop } from "@/contexts/ShopContext";
-import { ChevronLeft, FileUp } from "lucide-react";
+import { OrderCreateRequest } from "@/types/order/OrderRequest";
+import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -14,7 +17,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, cartTotal, clearCart } = useShop();
   const { user, isAuthenticated } = useAuth();
-  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string>("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -64,10 +67,13 @@ const Checkout = () => {
     }).format(price);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setPaymentProof(e.target.files[0]);
-    }
+  const handlePaymentProofUpload = (url: string) => {
+    setPaymentProofUrl(url);
+    toast.success("Payment proof uploaded successfully!");
+  };
+
+  const handleUploadError = (error: string) => {
+    toast.error(`Upload failed: ${error}`);
   };
 
   const handlePlaceOrder = async () => {
@@ -76,25 +82,60 @@ const Checkout = () => {
       return;
     }
 
-    if (!paymentProof) {
+    if (!paymentProofUrl) {
       toast.error("Please upload your payment screenshot");
+      return;
+    }
+
+    if (!user) {
+      toast.error("User authentication required");
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // Simulate order processing
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Find the selected address object
+      const address = user.addresses.find(
+        (addr) => addr.id === selectedAddress
+      );
+      if (!address) {
+        throw new Error("Selected address not found");
+      }
+
+      // Prepare order data
+      const orderData: OrderCreateRequest = {
+        orderProducts: cartItems.map((item) => ({
+          productId: parseInt(item.product.id),
+          quantity: item.quantity,
+        })),
+        totalAmount: cartTotal + (cartTotal >= 1999 ? 0 : 99), // Include shipping
+        addressId: parseInt(address.id), // Send address ID instead of string
+        paymentProofUrl, // Cloudinary URL
+      };
+
+      // Place order via API
+      const response = await placeOrder(parseInt(user.id), orderData);
+
+      console.log("Order placed successfully:", response);
 
       // Clear cart after successful order
       await clearCart();
 
-      navigate("/order-success");
+      navigate("/order-success", {
+        state: {
+          orderId: response.id,
+          orderNumber: response.id,
+        },
+      });
       toast.success("Order placed successfully!");
     } catch (error) {
       console.error("Failed to place order:", error);
-      toast.error("Failed to place order");
+      toast.error(
+        error instanceof Error
+          ? `Failed to place order: ${error.message}`
+          : "Failed to place order. Please try again."
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -157,42 +198,12 @@ const Checkout = () => {
                   </ol>
                 </div>
 
-                <div className="border-2 border-dashed rounded-md p-4 text-center">
-                  <input
-                    type="file"
-                    id="payment-proof"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-
-                  {!paymentProof ? (
-                    <label
-                      htmlFor="payment-proof"
-                      className="cursor-pointer block py-6"
-                    >
-                      <FileUp className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="font-medium">Upload Payment Screenshot</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Click to browse
-                      </p>
-                    </label>
-                  ) : (
-                    <div className="py-2">
-                      <p className="text-sm mb-2">
-                        <span className="font-medium">File uploaded:</span>{" "}
-                        {paymentProof.name}
-                      </p>
-                      <div className="flex justify-center gap-2">
-                        <label htmlFor="payment-proof">
-                          <Button variant="outline" size="sm">
-                            Change File
-                          </Button>
-                        </label>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <CloudinaryUpload
+                  onUploadSuccess={handlePaymentProofUpload}
+                  onUploadError={handleUploadError}
+                  disabled={isProcessing}
+                  maxFileSize={10}
+                />
               </Card>
             </div>
           </div>
@@ -246,7 +257,9 @@ const Checkout = () => {
                   <Button
                     className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90"
                     onClick={handlePlaceOrder}
-                    disabled={!selectedAddress || !paymentProof || isProcessing}
+                    disabled={
+                      !selectedAddress || !paymentProofUrl || isProcessing
+                    }
                   >
                     {isProcessing ? "Processing..." : "Place Order"}
                   </Button>
