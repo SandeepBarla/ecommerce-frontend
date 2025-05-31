@@ -1,12 +1,11 @@
-
-import { useState, useEffect } from "react";
-import { useAuth, Address } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import { Address, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface AddressFormProps {
   existingAddress: Address | null;
@@ -16,7 +15,7 @@ interface AddressFormProps {
 const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
   const { addAddress, updateAddress } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     id: "",
     name: "",
@@ -25,9 +24,9 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
     state: "",
     pincode: "",
     phone: "",
-    isDefault: false
+    isDefault: false,
   });
-  
+
   useEffect(() => {
     if (existingAddress) {
       setFormData({
@@ -38,51 +37,66 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
         state: existingAddress.state,
         pincode: existingAddress.pincode,
         phone: existingAddress.phone,
-        isDefault: existingAddress.isDefault
+        isDefault: existingAddress.isDefault,
       });
     }
   }, [existingAddress]);
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
-  
+
   const handleSwitchChange = (checked: boolean) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      isDefault: checked
+      isDefault: checked,
     }));
   };
-  
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Validate form
-    if (!formData.name || !formData.street || !formData.city || !formData.state || !formData.pincode || !formData.phone) {
+    if (
+      !formData.name ||
+      !formData.street ||
+      !formData.city ||
+      !formData.state ||
+      !formData.pincode ||
+      !formData.phone
+    ) {
       toast.error("Please fill all required fields");
       setIsSubmitting(false);
       return;
     }
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
       if (existingAddress) {
-        updateAddress(formData as Address);
+        await updateAddress(formData as Address);
       } else {
-        const { id, ...addressData } = formData;
-        addAddress(addressData);
+        await addAddress({
+          name: formData.name,
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          phone: formData.phone,
+          isDefault: formData.isDefault,
+        });
       }
-      
-      setIsSubmitting(false);
       onClose();
-    }, 800);
+    } catch {
+      // Error is already handled in the context with toast
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-2">
       <div className="space-y-2">
@@ -96,7 +110,7 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
           required
         />
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="street">Street Address</Label>
         <Input
@@ -108,7 +122,7 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
           required
         />
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="city">City</Label>
@@ -121,7 +135,7 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="state">State</Label>
           <Input
@@ -134,7 +148,7 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
           />
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="pincode">Pin Code</Label>
@@ -148,7 +162,7 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="phone">Phone Number</Label>
           <Input
@@ -162,7 +176,7 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
           />
         </div>
       </div>
-      
+
       <div className="flex items-center space-x-2">
         <Switch
           id="isDefault"
@@ -171,13 +185,18 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
         />
         <Label htmlFor="isDefault">Set as default address</Label>
       </div>
-      
+
       <div className="flex justify-end gap-3 pt-3">
-        <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          disabled={isSubmitting}
+        >
           Cancel
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="bg-ethnic-purple hover:bg-ethnic-purple/90"
           disabled={isSubmitting}
         >
@@ -186,8 +205,10 @@ const AddressForm = ({ existingAddress, onClose }: AddressFormProps) => {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Saving...
             </>
+          ) : existingAddress ? (
+            "Update Address"
           ) : (
-            existingAddress ? "Update Address" : "Add Address"
+            "Add Address"
           )}
         </Button>
       </div>

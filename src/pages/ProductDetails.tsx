@@ -4,6 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 import { useShop } from "@/contexts/ShopContext";
 import { ProductResponse } from "@/types/product/ProductResponse";
 import { useQuery } from "@tanstack/react-query";
@@ -13,29 +14,32 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 function mapApiProductToCardProduct(apiProduct: ProductResponse | undefined) {
-  if (!apiProduct) return undefined;
+  if (!apiProduct) return null;
+
   return {
-    id: String(apiProduct.id),
+    id: apiProduct.id.toString(),
     name: apiProduct.name,
-    description: apiProduct.description,
     price: apiProduct.price,
-    originalPrice: undefined,
-    images: apiProduct.media.map((m) => m.mediaUrl),
-    category: "",
-    tags: [],
-    colors: [],
-    sizes: [],
-    stockQuantity: apiProduct.stock,
+    originalPrice: apiProduct.price * 1.2, // Mock original price
+    images: apiProduct.media?.map((media) => media.mediaUrl) || [
+      "/placeholder.png",
+    ],
+    description: apiProduct.description,
+    category: "Lehenga",
+    tags: ["traditional", "ethnic"], // Mock tags
+    colors: ["Red", "Blue"], // Mock colors
+    sizes: ["S", "M", "L"], // Mock sizes
+    stockQuantity: apiProduct.stock || 10, // Use API stock or default
     isNew: false,
-    isFeatured: false,
-    discount: undefined,
+    discount: Math.floor(Math.random() * 20), // Mock discount
   };
 }
 
 const ProductDetails = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { addToCart, addToWishlist, isInWishlist } = useShop();
+  const { addToCart } = useShop();
+  const { user, addFavorite, removeFavorite, isAuthenticated } = useAuth();
 
   const {
     data: product,
@@ -50,6 +54,10 @@ const ProductDetails = () => {
   const uiProduct = mapApiProductToCardProduct(product);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity] = useState(1);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  const isInFavorites =
+    user?.favoriteProductIds.includes(parseInt(productId || "0")) || false;
 
   if (isLoading) {
     return (
@@ -111,6 +119,26 @@ const ProductDetails = () => {
     } catch (error) {
       console.error("Failed to add to cart:", error);
       toast.error("Failed to add item to cart");
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!user || !isAuthenticated) {
+      toast.error("Please log in to add items to your wishlist");
+      return;
+    }
+
+    setWishlistLoading(true);
+    try {
+      if (isInFavorites) {
+        await removeFavorite(parseInt(productId || "0"));
+      } else {
+        await addFavorite(parseInt(productId || "0"));
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    } finally {
+      setWishlistLoading(false);
     }
   };
 
@@ -236,11 +264,12 @@ const ProductDetails = () => {
                 Add to Cart
               </Button>
               <Button
-                onClick={() => addToWishlist(uiProduct)}
+                onClick={handleWishlistToggle}
+                disabled={wishlistLoading}
                 variant="outline"
                 size="lg"
                 className={`w-full border-ethnic-purple ${
-                  isInWishlist(uiProduct.id)
+                  isInFavorites
                     ? "bg-ethnic-purple/10 text-ethnic-purple"
                     : "text-ethnic-purple hover:bg-ethnic-purple/10"
                 }`}
@@ -248,10 +277,14 @@ const ProductDetails = () => {
                 <Heart
                   size={18}
                   className={`mr-2 ${
-                    isInWishlist(uiProduct.id) ? "fill-ethnic-purple" : ""
+                    isInFavorites ? "fill-ethnic-purple" : ""
                   }`}
                 />
-                {isInWishlist(uiProduct.id) ? "In Wishlist" : "Add to Wishlist"}
+                {wishlistLoading
+                  ? "Updating..."
+                  : isInFavorites
+                  ? "In Wishlist"
+                  : "Add to Wishlist"}
               </Button>
             </div>
             {/* Share button */}

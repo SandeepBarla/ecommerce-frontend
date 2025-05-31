@@ -1,4 +1,3 @@
-import { getUserById } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,19 +18,14 @@ const AccountProfile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      setIsLoading(true);
-      try {
-        const userId = user?.id || localStorage.getItem("userId");
-        if (userId) {
-          const data = await getUserById(Number(userId));
-          setProfile({ name: data.fullName, email: data.email });
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProfile();
+    if (user) {
+      setProfile({
+        name: user.name,
+        email: user.email,
+        phone: user.phone || "",
+      });
+      setIsLoading(false);
+    }
   }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,14 +33,21 @@ const AccountProfile = () => {
     setProfile((prev) => (prev ? { ...prev, [name]: value } : prev));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!profile) return;
+
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      if (profile) updateUserProfile({ name: profile.name });
+    try {
+      await updateUserProfile({
+        fullName: profile.name,
+        phone: profile.phone || undefined,
+      });
+    } catch {
+      // Error is already handled in the context
+    } finally {
       setIsSubmitting(false);
-    }, 800);
+    }
   };
 
   if (isLoading || !profile) {
@@ -109,6 +110,18 @@ const AccountProfile = () => {
               <p className="text-xs text-muted-foreground">
                 Email cannot be changed
               </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                value={profile.phone}
+                onChange={handleInputChange}
+                placeholder="Enter your phone number"
+                maxLength={10}
+              />
             </div>
           </div>
           <div className="pt-2">

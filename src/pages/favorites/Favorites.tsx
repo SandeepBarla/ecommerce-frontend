@@ -1,24 +1,28 @@
-import { useContext, useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchFavorites, removeFavorite } from "../../api/favorites";
-import { AuthContext } from "../../context/AuthContext";
+import { fetchFavorites } from "../../api/favorites";
 import { FavoriteResponse } from "../../types/favorites/FavoriteResponse";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState<FavoriteResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const authContext = useContext(AuthContext);
-  const { user } = authContext || {};
+  const { user, removeFavorite } = useAuth();
   const [removingId, setRemovingId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     const fetchUserFavorites = async () => {
       try {
-        const data = await fetchFavorites(user.id);
+        const data = await fetchFavorites(parseInt(user.id));
         setFavorites(data);
-      } catch {
+      } catch (error) {
+        console.error("Error fetching favorites:", error);
         setError("Failed to load favorites.");
       } finally {
         setLoading(false);
@@ -27,12 +31,29 @@ const Favorites = () => {
     fetchUserFavorites();
   }, [user]);
 
+  // Re-fetch when favorites list changes in AuthContext
+  useEffect(() => {
+    if (user && user.favoriteProductIds.length !== favorites.length) {
+      const fetchUserFavorites = async () => {
+        try {
+          const data = await fetchFavorites(parseInt(user.id));
+          setFavorites(data);
+        } catch (error) {
+          console.error("Error refetching favorites:", error);
+        }
+      };
+      fetchUserFavorites();
+    }
+  }, [user?.favoriteProductIds, favorites.length, user]);
+
   const handleUnmarkFavorite = async (productId: number) => {
     if (!user) return;
+
     setRemovingId(productId);
     setTimeout(async () => {
       try {
-        await removeFavorite(user.id, productId);
+        await removeFavorite(productId);
+        // Remove from local state immediately
         setFavorites((prevFavorites) =>
           prevFavorites.filter((fav) => fav.productId !== productId)
         );
@@ -74,6 +95,22 @@ const Favorites = () => {
         <p className="text-center text-red-500">{error}</p>
       </div>
     );
+
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-center">My Favorites ❤️</h1>
+        <div className="text-center p-10 text-gray-500">
+          <h2 className="text-2xl font-bold">
+            Please log in to view your favorites
+          </h2>
+          <p className="text-base mt-2">
+            Sign in to access your favorite products! 🎉
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

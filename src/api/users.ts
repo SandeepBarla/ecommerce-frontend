@@ -1,4 +1,7 @@
-import { UserRegisterRequest } from "../types/user/UserRequest";
+import {
+  UserRegisterRequest,
+  UserUpdateRequest,
+} from "../types/user/UserRequest";
 import { AuthResponse, UserResponse } from "../types/user/UserResponse";
 import api from "./api";
 
@@ -20,4 +23,12 @@ export const getAllUsers = async (): Promise<UserResponse[]> => {
 export const getUserById = async (userId: number): Promise<UserResponse> => {
   const response = await api.get<UserResponse>(`/users/${userId}`);
   return response.data;
+};
+
+// ✅ Update User Profile
+export const updateUserProfile = async (
+  userId: number,
+  userData: UserUpdateRequest
+): Promise<void> => {
+  await api.put(`/users/${userId}`, userData);
 };

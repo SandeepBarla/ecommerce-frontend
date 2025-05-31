@@ -1,46 +1,56 @@
-
-import { useState } from "react";
-import { useAuth, Address } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import { MapPin, Edit, Trash2, Plus } from "lucide-react";
+import { Address, useAuth } from "@/contexts/AuthContext";
+import { Edit, MapPin, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import AddressForm from "./AddressForm";
 
 const AccountAddresses = () => {
   const { user, removeAddress, setDefaultAddress } = useAuth();
   const [openDialog, setOpenDialog] = useState(false);
   const [editAddress, setEditAddress] = useState<Address | null>(null);
-  
+
   const handleEditAddress = (address: Address) => {
     setEditAddress(address);
     setOpenDialog(true);
   };
-  
+
   const handleAddNewAddress = () => {
     setEditAddress(null);
     setOpenDialog(true);
   };
-  
-  const handleRemoveAddress = (addressId: string) => {
+
+  const handleRemoveAddress = async (addressId: string) => {
     if (confirm("Are you sure you want to remove this address?")) {
-      removeAddress(addressId);
+      try {
+        await removeAddress(addressId);
+      } catch {
+        // Error is already handled in the context
+      }
     }
   };
-  
-  const handleSetDefault = (addressId: string) => {
-    setDefaultAddress(addressId);
+
+  const handleSetDefault = async (addressId: string) => {
+    try {
+      await setDefaultAddress(addressId);
+    } catch {
+      // Error is already handled in the context
+    }
   };
-  
+
   const closeDialog = () => {
     setOpenDialog(false);
     setEditAddress(null);
   };
-  
+
   return (
     <>
       <Card>
@@ -54,7 +64,7 @@ const AccountAddresses = () => {
             <Plus size={16} className="mr-1" /> Add New Address
           </Button>
         </CardHeader>
-        
+
         <CardContent>
           {user?.addresses && user.addresses.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -62,7 +72,9 @@ const AccountAddresses = () => {
                 <div
                   key={address.id}
                   className={`border rounded-md p-4 relative ${
-                    address.isDefault ? "border-ethnic-purple bg-ethnic-purple/5" : ""
+                    address.isDefault
+                      ? "border-ethnic-purple bg-ethnic-purple/5"
+                      : ""
                   }`}
                 >
                   {address.isDefault && (
@@ -70,20 +82,21 @@ const AccountAddresses = () => {
                       Default
                     </span>
                   )}
-                  
+
                   <div className="flex items-start mb-3">
                     <MapPin className="h-5 w-5 mr-2 flex-shrink-0 text-muted-foreground" />
                     <div>
                       <h3 className="font-medium">{address.name}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {address.street}, {address.city}, {address.state} - {address.pincode}
+                        {address.street}, {address.city}, {address.state} -{" "}
+                        {address.pincode}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
                         Phone: {address.phone}
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t">
                     {!address.isDefault && (
                       <div className="flex items-center">
@@ -92,12 +105,15 @@ const AccountAddresses = () => {
                           checked={address.isDefault}
                           onCheckedChange={() => handleSetDefault(address.id)}
                         />
-                        <Label htmlFor={`default-${address.id}`} className="ml-2 text-sm">
+                        <Label
+                          htmlFor={`default-${address.id}`}
+                          className="ml-2 text-sm"
+                        >
                           Set as default
                         </Label>
                       </div>
                     )}
-                    
+
                     <div className="flex gap-2 ml-auto">
                       <Button
                         size="sm"
@@ -107,7 +123,7 @@ const AccountAddresses = () => {
                       >
                         <Edit size={14} className="mr-1" /> Edit
                       </Button>
-                      
+
                       <Button
                         size="sm"
                         variant="outline"
@@ -125,8 +141,10 @@ const AccountAddresses = () => {
             <div className="text-center py-8">
               <MapPin className="w-12 h-12 mx-auto text-muted-foreground opacity-50 mb-3" />
               <h3 className="font-medium text-lg mb-1">No addresses found</h3>
-              <p className="text-muted-foreground mb-4">Add your first address to get started</p>
-              <Button 
+              <p className="text-muted-foreground mb-4">
+                Add your first address to get started
+              </p>
+              <Button
                 onClick={handleAddNewAddress}
                 className="bg-ethnic-purple hover:bg-ethnic-purple/90"
               >
@@ -136,7 +154,7 @@ const AccountAddresses = () => {
           )}
         </CardContent>
       </Card>
-      
+
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -144,11 +162,8 @@ const AccountAddresses = () => {
               {editAddress ? "Edit Address" : "Add New Address"}
             </DialogTitle>
           </DialogHeader>
-          
-          <AddressForm
-            existingAddress={editAddress}
-            onClose={closeDialog}
-          />
+
+          <AddressForm existingAddress={editAddress} onClose={closeDialog} />
         </DialogContent>
       </Dialog>
     </>

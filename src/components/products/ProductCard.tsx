@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Product, useShop } from "@/contexts/ShopContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { Product } from "@/contexts/ShopContext";
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -11,8 +12,9 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const { addToWishlist, isInWishlist } = useShop();
+  const { user, addFavorite, removeFavorite, isAuthenticated } = useAuth();
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -22,10 +24,30 @@ const ProductCard = ({ product }: ProductCardProps) => {
     }).format(price);
   };
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const isInFavorites =
+    user?.favoriteProductIds.includes(parseInt(product.id)) || false;
+
+  const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToWishlist(product);
+
+    if (!user || !isAuthenticated) {
+      // Could trigger login dialog here if needed
+      return;
+    }
+
+    setFavoriteLoading(true);
+    try {
+      if (isInFavorites) {
+        await removeFavorite(parseInt(product.id));
+      } else {
+        await addFavorite(parseInt(product.id));
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    } finally {
+      setFavoriteLoading(false);
+    }
   };
 
   return (
@@ -63,15 +85,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {/* Wishlist button */}
         <button
           onClick={handleWishlist}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
+          disabled={favoriteLoading}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors disabled:opacity-50"
           aria-label="Add to wishlist"
         >
           <Heart
             size={16}
             className={
-              isInWishlist(product.id)
-                ? "fill-red-500 text-red-500"
-                : "text-gray-600"
+              isInFavorites ? "fill-red-500 text-red-500" : "text-gray-600"
             }
           />
         </button>
