@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
-import { useShop } from "@/contexts/ShopContext";
+import { useCart } from "@/hooks/useCart";
 import {
   Award,
   Heart,
@@ -22,7 +22,7 @@ import { Link } from "react-router-dom";
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
-  const { cartCount, cartItems } = useShop();
+  const { cartCount, cartItems } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 

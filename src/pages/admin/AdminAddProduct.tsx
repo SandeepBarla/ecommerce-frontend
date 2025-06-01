@@ -11,7 +11,11 @@
 // import { createProduct } from "../../api/products"; // ✅ Correct API import
 // import { AuthContext } from "../../context/AuthContext";
 // import { ProductUpsertRequest } from "../../types/product/ProductUpsertRequest"; // ✅ Use correct type
+import { createProduct } from "@/api/products";
 import ProductForm from "@/components/admin/ProductForm";
+import { ProductUpsertRequest } from "@/types/product/ProductUpsertRequest";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 // const AdminAddProduct = () => {
 //   const navigate = useNavigate();
@@ -134,7 +138,20 @@ import ProductForm from "@/components/admin/ProductForm";
 // };
 
 const AdminAddProduct = () => {
-  return <ProductForm isNew={true} initialProduct={null} />;
+  const navigate = useNavigate();
+
+  const handleSubmit = async (data: ProductUpsertRequest) => {
+    try {
+      await createProduct(data);
+      toast.success("Product created successfully!");
+      navigate("/admin/products");
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast.error("Failed to create product");
+    }
+  };
+
+  return <ProductForm onSubmit={handleSubmit} />;
 };
 
 export default AdminAddProduct;

@@ -1,3 +1,4 @@
+import { getEffectivePrice } from "@/lib/utils";
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getCart, upsertCartItem } from "../../api/cart";
@@ -52,7 +53,13 @@ const Cart = () => {
           )
           .filter((item) => item.quantity > 0);
         const totalPrice = updatedItems.reduce(
-          (sum, item) => sum + item.product.price * item.quantity,
+          (sum, item) =>
+            sum +
+            getEffectivePrice(
+              item.product.originalPrice,
+              item.product.discountedPrice
+            ) *
+              item.quantity,
           0
         );
         return { ...prevCart, cartItems: updatedItems, totalPrice };
@@ -181,7 +188,11 @@ const Cart = () => {
                     </h3>
                   </Link>
                   <p className="text-body2 text-text-secondary mb-1">
-                    ₹{item.product.price.toFixed(2)}
+                    ₹
+                    {getEffectivePrice(
+                      item.product.originalPrice,
+                      item.product.discountedPrice
+                    ).toFixed(2)}
                   </p>
                   <div className="flex items-center gap-1">
                     <button

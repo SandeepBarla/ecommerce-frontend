@@ -7,7 +7,18 @@ export interface ProductMediaRequest {
 export interface ProductUpsertRequest {
   name: string;
   description: string;
-  price: number;
-  stock: number;
+
+  // ✅ Simplified Pricing Structure
+  originalPrice: number;
+  discountedPrice?: number;
+
+  // ✅ Category and Size (required for backend)
+  categoryId: number;
+  sizeId: number;
+
+  // ✅ UI Enhancement Fields
+  isFeatured?: boolean;
+  newUntil?: string; // ISO date string
+
   media: ProductMediaRequest[];
 }

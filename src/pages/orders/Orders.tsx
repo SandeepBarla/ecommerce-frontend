@@ -75,7 +75,7 @@ const Orders = () => {
                       {new Date(order.orderDate).toLocaleDateString()}
                     </Typography>
                     <Typography>
-                      Shipping Address: {order.shippingAddress}
+                      Address ID: {order.addressId || "N/A"}
                     </Typography>
                   </Box>
                 }

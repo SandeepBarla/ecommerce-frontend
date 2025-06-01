@@ -1,4 +1,4 @@
-import { deleteProduct } from "@/api/products";
+import { deleteProduct, fetchProducts } from "@/api/products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,42 +9,73 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Product } from "@/contexts/ShopContext";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit, Search, Trash } from "lucide-react";
+import { formatPrice, getEffectivePrice } from "@/lib/utils";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Edit, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
-interface ProductTableProps {
-  products: Product[];
-}
-
-const ProductTable = ({ products }: ProductTableProps) => {
-  const navigate = useNavigate();
+const ProductTable = () => {
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteProduct(Number(id)),
+
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+  });
+
+  const deleteProductMutation = useMutation({
+    mutationFn: deleteProduct,
     onSuccess: () => {
-      toast.success("Product deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Product deleted successfully");
     },
-    onError: (err: unknown) => {
-      if (err instanceof Error) {
-        toast.error(err.message);
-      } else {
-        toast.error("Error deleting product");
-      }
+    onError: (error) => {
+      console.error("Failed to delete product:", error);
+      toast.error("Failed to delete product");
     },
   });
+
+  const handleDelete = (id: number) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      deleteProductMutation.mutate(id);
+    }
+  };
 
   const filteredProducts = products.filter(
     (product) =>
       product.name.toLowerCase().includes(search.toLowerCase()) ||
-      product.description.toLowerCase().includes(search.toLowerCase()) ||
-      product.category.toLowerCase().includes(search.toLowerCase())
+      product.categoryName.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Products</h2>
+        </div>
+        <div className="text-center py-8">Loading products...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Products</h2>
+        </div>
+        <div className="text-center py-8 text-red-500">
+          Failed to load products. Please try again.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -86,48 +117,43 @@ const ProductTable = ({ products }: ProductTableProps) => {
               filteredProducts.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-md overflow-hidden bg-gray-100">
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{product.name}</span>
-                        <span className="text-xs text-gray-500 md:hidden">
-                          ₹{product.price.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
+                    <img
+                      src={product.primaryImageUrl || "/placeholder.png"}
+                      alt={product.name}
+                      className="w-12 h-12 object-cover rounded"
+                    />
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {product.category}
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell>{product.categoryName}</TableCell>
+                  <TableCell>
+                    {formatPrice(
+                      getEffectivePrice(
+                        product.originalPrice,
+                        product.discountedPrice
+                      )
+                    )}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    ₹{product.price.toLocaleString()}
-                  </TableCell>
+                  <TableCell>N/A</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          navigate(`/admin/products/${product.id}`)
-                        }
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                      </Button>
+                      <Link to={`/admin/products/edit/${product.id}`}>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                      </Link>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                        onClick={() => deleteMutation.mutate(product.id)}
-                        disabled={deleteMutation.status === "pending"}
+                        onClick={() => handleDelete(product.id)}
+                        disabled={deleteProductMutation.status === "pending"}
                       >
-                        <Trash className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Delete</span>
                       </Button>
                     </div>

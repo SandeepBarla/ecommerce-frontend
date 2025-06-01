@@ -1,3 +1,4 @@
+import { getEffectivePrice } from "@/lib/utils";
 import {
   Alert,
   Box,
@@ -15,7 +16,6 @@ import LoginDialog from "../../components/LoginDialog";
 import { AuthContext } from "../../context/AuthContext";
 import { useLoading } from "../../context/LoadingContext";
 import { CartItemResponse } from "../../types/cart/CartResponse";
-import { OrderCreateRequest } from "../../types/order/OrderRequest"; // Import the correct request type
 
 const Checkout = () => {
   const [cartItems, setCartItems] = useState<CartItemResponse[]>([]);
@@ -79,11 +79,17 @@ const Checkout = () => {
       return;
     }
 
-    const totalAmount = cartItems.reduce(
-      (total, item) => total + item.product.price * item.quantity,
+    const cartTotal = cartItems.reduce(
+      (total, item) =>
+        total +
+        getEffectivePrice(
+          item.product.originalPrice,
+          item.product.discountedPrice
+        ) *
+          item.quantity,
       0
     );
-    if (totalAmount <= 0) {
+    if (cartTotal <= 0) {
       setError("Total amount must be greater than 0.");
       return;
     }
@@ -91,10 +97,12 @@ const Checkout = () => {
     setPlacingOrder(true);
     setGlobalLoading(true);
     try {
-      const orderData: OrderCreateRequest = {
-        orderProducts, // ✅ Correct key based on backend DTO
-        totalAmount,
-        shippingAddress: shippingAddress.trim(),
+      const orderData = {
+        orderProducts: cartItems.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        })),
+        totalAmount: cartTotal,
       };
       await placeOrder(user.id, orderData); // Pass userId in API URL, not in request body
       await clearCart(user.id); // Clear the cart for the specific user
@@ -170,7 +178,12 @@ const Checkout = () => {
         >
           <Typography>{item.product.name}</Typography>
           <Typography>
-            ₹{item.product.price} x {item.quantity}
+            ₹
+            {getEffectivePrice(
+              item.product.originalPrice,
+              item.product.discountedPrice
+            )}{" "}
+            x {item.quantity}
           </Typography>
         </Box>
       ))}
@@ -178,7 +191,13 @@ const Checkout = () => {
       <Typography variant="h6" sx={{ mt: 2 }}>
         Total: ₹
         {cartItems.reduce(
-          (total, item) => total + item.product.price * item.quantity,
+          (total, item) =>
+            total +
+            getEffectivePrice(
+              item.product.originalPrice,
+              item.product.discountedPrice
+            ) *
+              item.quantity,
           0
         )}
       </Typography>

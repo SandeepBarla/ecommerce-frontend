@@ -2,27 +2,7 @@ import { fetchProducts } from "@/api/products";
 import Layout from "@/components/layout/Layout";
 import ProductCard from "@/components/products/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProductListResponse } from "@/types/product/ProductListResponse";
 import { useQuery } from "@tanstack/react-query";
-
-function mapApiProductToCardProduct(apiProduct: ProductListResponse) {
-  return {
-    id: String(apiProduct.id),
-    name: apiProduct.name,
-    description: "",
-    price: apiProduct.price,
-    originalPrice: undefined,
-    images: [apiProduct.primaryImageUrl],
-    category: "",
-    tags: [],
-    colors: [],
-    sizes: [],
-    stockQuantity: apiProduct.stock,
-    isNew: false,
-    isFeatured: false,
-    discount: undefined,
-  };
-}
 
 const CollectionPage = () => {
   // const { collectionType } = useParams<{ collectionType: string }>();
@@ -35,7 +15,6 @@ const CollectionPage = () => {
     queryFn: fetchProducts,
   });
 
-  const displayProducts = products.map(mapApiProductToCardProduct);
   const pageTitle = "All Products";
   const pageDescription = "Browse our complete collection";
 
@@ -75,11 +54,11 @@ const CollectionPage = () => {
           </p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6">
-          {displayProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-        {displayProducts.length === 0 && (
+        {products.length === 0 && (
           <div className="text-center py-16">
             <p className="text-lg text-muted-foreground">
               No products found in this collection.

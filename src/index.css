@@ -1,5 +1,4 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -43,12 +42,17 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground font-sans;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-serif;
   }
 }
@@ -57,20 +61,141 @@
   .ethnic-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
-  
+
   .btn-primary {
     @apply bg-ethnic-purple text-white hover:bg-ethnic-purple/90 transition-colors;
   }
-  
+
   .btn-secondary {
     @apply bg-ethnic-gold text-foreground hover:bg-ethnic-gold/90 transition-colors;
   }
-  
+
   .ethnic-card {
     @apply bg-white border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200;
   }
-  
+
   .ethnic-input {
     @apply border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+
+  /* Enhanced video player styling for reel-like experience */
+  .elegant-video {
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+      0 8px 10px -6px rgb(0 0 0 / 0.1);
+  }
+
+  .elegant-video::-webkit-media-controls-panel {
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.8) 0%,
+      transparent 100%
+    );
+    border-radius: 0 0 1rem 1rem;
+  }
+
+  .elegant-video::-webkit-media-controls-play-button {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+  }
+
+  .elegant-video::-webkit-media-controls-current-time-display,
+  .elegant-video::-webkit-media-controls-time-remaining-display {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Custom Instagram-style video player */
+  .instagram-video {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .instagram-video video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 1rem;
+  }
+
+  /* Hide default video controls */
+  .instagram-video video::-webkit-media-controls {
+    display: none !important;
+  }
+
+  .instagram-video video::-webkit-media-controls-panel {
+    display: none !important;
+  }
+
+  .instagram-video video::-webkit-media-controls-play-button {
+    display: none !important;
+  }
+
+  .instagram-video video::-webkit-media-controls-start-playback-button {
+    display: none !important;
+  }
+
+  /* Firefox */
+  .instagram-video video::-moz-media-controls {
+    display: none !important;
+  }
+
+  /* Smooth progress bar animation */
+  .video-progress {
+    transition: width 0.1s ease-out;
+  }
+
+  /* Elegant thumbnail hover effects */
+  .media-thumbnail {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .media-thumbnail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Uniform media container */
+  .uniform-media-container {
+    height: 500px;
+  }
+
+  @media (min-width: 768px) {
+    .uniform-media-container {
+      height: 600px;
+    }
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom scrollbar for thumbnail gallery */
+  .elegant-scrollbar::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .elegant-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+  }
+
+  .elegant-scrollbar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+  }
+
+  .elegant-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }
 }

@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 import { CloudinaryUpload } from "@/components/ui/CloudinaryUpload";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
-import { useShop } from "@/contexts/ShopContext";
+import { useCart } from "@/hooks/useCart";
+import { formatPrice, getEffectivePrice } from "@/lib/utils";
 import { OrderCreateRequest } from "@/types/order/OrderRequest";
 import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +16,7 @@ import { toast } from "sonner";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cartItems, cartTotal, clearCart } = useShop();
+  const { cartItems, cartTotal, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const [paymentProofUrl, setPaymentProofUrl] = useState<string>("");
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -59,14 +60,6 @@ const Checkout = () => {
     );
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   const handlePaymentProofUpload = (url: string) => {
     setPaymentProofUrl(url);
     toast.success("Payment proof uploaded successfully!");
@@ -106,7 +99,7 @@ const Checkout = () => {
       // Prepare order data
       const orderData: OrderCreateRequest = {
         orderProducts: cartItems.map((item) => ({
-          productId: parseInt(item.product.id),
+          productId: item.product.id,
           quantity: item.quantity,
         })),
         totalAmount: cartTotal + (cartTotal >= 1999 ? 0 : 99), // Include shipping
@@ -225,7 +218,12 @@ const Checkout = () => {
                       </span>
                     </div>
                     <span>
-                      {formatPrice(item.product.price * item.quantity)}
+                      {formatPrice(
+                        getEffectivePrice(
+                          item.product.originalPrice,
+                          item.product.discountedPrice
+                        ) * item.quantity
+                      )}
                     </span>
                   </div>
                 ))}

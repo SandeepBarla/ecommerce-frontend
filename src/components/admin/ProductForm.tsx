@@ -1,11 +1,10 @@
-import { createProduct, updateProduct } from "@/api/products";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Product } from "@/contexts/ShopContext";
+import { ProductResponse } from "@/types/product/ProductResponse";
 import { ProductUpsertRequest } from "@/types/product/ProductUpsertRequest";
 import { ChevronLeft, Save } from "lucide-react";
 import { FormEvent, useState } from "react";
@@ -13,37 +12,29 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 interface ProductFormProps {
-  initialProduct: Product | null;
-  isNew: boolean;
-  productId?: string;
+  initialData?: ProductResponse;
+  onSubmit: (data: ProductUpsertRequest) => void;
+  isLoading?: boolean;
 }
 
 const ProductForm = ({
-  initialProduct,
-  isNew,
-  productId,
+  initialData,
+  onSubmit,
+  isLoading = false,
 }: ProductFormProps) => {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<Partial<Product>>(
-    initialProduct || {
-      name: "",
-      description: "",
-      price: 0,
-      originalPrice: 0,
-      images: [
-        "https://images.unsplash.com/photo-1583391733981-8498408ee4b6?q=80&w=2574",
-      ],
-      category: "Lehengas",
-      tags: [],
-      colors: [],
-      sizes: ["Free Size"],
-      stockQuantity: 10,
-      isNew: false,
-      isFeatured: false,
-    }
-  );
+  const [formData, setFormData] = useState({
+    name: initialData?.name || "",
+    description: initialData?.description || "",
+    originalPrice: initialData?.originalPrice || 0,
+    discountedPrice: initialData?.discountedPrice || undefined,
+    categoryId: 1, // Default category
+    sizeId: 1, // Default size
+    isFeatured: initialData?.isFeatured || false,
+    newUntil: initialData?.newUntil || null,
+    media: initialData?.media || [],
+  });
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -63,34 +54,29 @@ const ProductForm = ({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
     // Prepare payload for API
     const payload: ProductUpsertRequest = {
       name: formData.name || "",
       description: formData.description || "",
-      price: formData.price || 0,
-      stock: formData.stockQuantity || 0,
-      media: (formData.images || []).map((url, idx) => ({
-        mediaUrl: url,
+      originalPrice: formData.originalPrice || 0,
+      discountedPrice: formData.discountedPrice,
+      categoryId: formData.categoryId,
+      sizeId: formData.sizeId,
+      isFeatured: formData.isFeatured,
+      newUntil: formData.newUntil || undefined,
+      media: formData.media.map((item, idx) => ({
+        mediaUrl: typeof item === "string" ? item : item.mediaUrl,
         orderIndex: idx,
         type: "Image",
       })),
     };
 
     try {
-      if (isNew) {
-        await createProduct(payload);
-        toast.success("Product created successfully");
-      } else if (productId) {
-        await updateProduct(Number(productId), payload);
-        toast.success("Product updated successfully");
-      }
-      navigate("/admin/products");
-    } catch (err: any) {
-      toast.error(err?.message || "Error saving product");
-    } finally {
-      setIsSubmitting(false);
+      onSubmit(payload);
+    } catch (err) {
+      const error = err as Error;
+      toast.error(error?.message || "Error saving product");
     }
   };
 
@@ -139,18 +125,6 @@ const ProductForm = ({
 
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="price">Price (₹)</Label>
-                <Input
-                  id="price"
-                  name="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={handleNumberChange}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="originalPrice">Original Price (₹)</Label>
                 <Input
                   id="originalPrice"
@@ -158,6 +132,19 @@ const ProductForm = ({
                   type="number"
                   value={formData.originalPrice}
                   onChange={handleNumberChange}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discountedPrice">Discounted Price (₹)</Label>
+                <Input
+                  id="discountedPrice"
+                  name="discountedPrice"
+                  type="number"
+                  value={formData.discountedPrice || ""}
+                  onChange={handleNumberChange}
+                  placeholder="Optional - leave empty for no discount"
                 />
               </div>
             </div>
@@ -167,8 +154,13 @@ const ProductForm = ({
               <Input
                 id="category"
                 name="category"
-                value={formData.category}
-                onChange={handleInputChange}
+                value={formData.categoryId}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    categoryId: parseInt(e.target.value),
+                  }))
+                }
                 required
               />
             </div>
@@ -178,22 +170,6 @@ const ProductForm = ({
             <h2 className="text-lg font-medium mb-4">Product Status</h2>
 
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="isNew">Mark as New Arrival</Label>
-                  <p className="text-sm text-gray-500">
-                    This product will be displayed in the New Arrivals section
-                  </p>
-                </div>
-                <Switch
-                  id="isNew"
-                  checked={formData.isNew}
-                  onCheckedChange={(checked) =>
-                    handleSwitchChange("isNew", checked)
-                  }
-                />
-              </div>
-
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="isFeatured">Featured Product</Label>
@@ -222,17 +198,13 @@ const ProductForm = ({
         >
           Cancel
         </Button>
-        <Button
-          type="submit"
-          className="bg-ethnic-purple hover:bg-ethnic-purple/90"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>Saving...</>
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            "Saving..."
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              {isNew ? "Create Product" : "Update Product"}
+              Save Product
             </>
           )}
         </Button>

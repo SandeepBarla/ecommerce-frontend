@@ -2,75 +2,90 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useShop } from "@/contexts/ShopContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/hooks/useCart";
+import { formatPrice, getPrimaryImageUrl } from "@/lib/productUtils";
+import { getEffectivePrice } from "@/lib/utils";
 import { ChevronLeft, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 
 const Cart = () => {
+  const { isAuthenticated } = useAuth();
   const {
     cartItems,
     removeFromCart,
-    updateCartItemQuantity,
+    updateQuantity,
     cartTotal,
     clearCart,
-    isCartLoading,
-  } = useShop();
-  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
+    isLoading,
+  } = useCart();
+  const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <Layout>
+        <div className="ethnic-container py-4 md:py-8">
+          <div className="text-center py-16">
+            <ShoppingBag
+              size={64}
+              className="mx-auto mb-4 text-muted-foreground"
+            />
+            <h2 className="text-2xl font-serif mb-2">Please Log In</h2>
+            <p className="text-muted-foreground mb-6">
+              You need to be logged in to view your cart
+            </p>
+            <Link to="/login">
+              <Button className="bg-ethnic-purple hover:bg-ethnic-purple/90 mr-4">
+                Log In
+              </Button>
+            </Link>
+            <Link to="/">
+              <Button variant="outline">Continue Shopping</Button>
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const handleQuantityChange = async (
-    productId: string,
+    productId: number,
     newQuantity: number
   ) => {
     setUpdatingItems((prev) => new Set(prev).add(productId));
     try {
-      await updateCartItemQuantity(productId, newQuantity);
-    } catch (error) {
-      console.error("Failed to update quantity:", error);
-      toast.error("Failed to update item quantity");
+      updateQuantity(productId, newQuantity);
     } finally {
-      setUpdatingItems((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(productId);
-        return newSet;
-      });
+      // Remove from updating set after a short delay
+      setTimeout(() => {
+        setUpdatingItems((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(productId);
+          return newSet;
+        });
+      }, 500);
     }
   };
 
-  const handleRemoveItem = async (productId: string) => {
+  const handleRemoveItem = async (productId: number) => {
     setUpdatingItems((prev) => new Set(prev).add(productId));
     try {
-      await removeFromCart(productId);
-    } catch (error) {
-      console.error("Failed to remove item:", error);
-      toast.error("Failed to remove item");
+      removeFromCart(productId);
     } finally {
-      setUpdatingItems((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(productId);
-        return newSet;
-      });
+      setTimeout(() => {
+        setUpdatingItems((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(productId);
+          return newSet;
+        });
+      }, 500);
     }
   };
 
-  const handleClearCart = async () => {
-    if (window.confirm("Are you sure you want to clear your cart?")) {
-      try {
-        await clearCart();
-      } catch (error) {
-        console.error("Failed to clear cart:", error);
-        toast.error("Failed to clear cart");
-      }
-    }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(price);
+  const handleClearCart = () => {
+    clearCart();
   };
 
   if (cartItems.length === 0) {
@@ -119,14 +134,11 @@ const Cart = () => {
               {cartItems.map((item) => {
                 const isUpdating = updatingItems.has(item.product.id);
                 return (
-                  <Card
-                    key={`${item.product.id}-${item.size}-${item.color}`}
-                    className="p-4"
-                  >
+                  <Card key={item.product.id} className="p-4">
                     <div className="flex gap-4">
                       <div className="w-20 h-20 flex-shrink-0 bg-muted rounded-md overflow-hidden">
                         <img
-                          src={item.product.images[0]}
+                          src={getPrimaryImageUrl(item.product)}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                         />
@@ -137,10 +149,15 @@ const Cart = () => {
                           {item.product.name}
                         </h3>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Size: {item.size} • Color: {item.color}
+                          Quantity: {item.quantity}
                         </p>
                         <p className="font-medium mt-2">
-                          {formatPrice(item.product.price)}
+                          {formatPrice(
+                            getEffectivePrice(
+                              item.product.originalPrice,
+                              item.product.discountedPrice
+                            )
+                          )}
                         </p>
                       </div>
 
@@ -156,7 +173,7 @@ const Cart = () => {
                                 item.quantity - 1
                               )
                             }
-                            disabled={isUpdating || isCartLoading}
+                            disabled={isUpdating || isLoading}
                           >
                             <Minus size={14} />
                           </Button>
@@ -173,7 +190,7 @@ const Cart = () => {
                                 item.quantity + 1
                               )
                             }
-                            disabled={isUpdating || isCartLoading}
+                            disabled={isUpdating || isLoading}
                           >
                             <Plus size={14} />
                           </Button>
@@ -184,7 +201,7 @@ const Cart = () => {
                           size="sm"
                           className="text-red-500 hover:text-red-600 hover:bg-red-50"
                           onClick={() => handleRemoveItem(item.product.id)}
-                          disabled={isUpdating || isCartLoading}
+                          disabled={isUpdating || isLoading}
                         >
                           <Trash2 size={14} />
                         </Button>
@@ -198,7 +215,7 @@ const Cart = () => {
                 <Button
                   variant="outline"
                   onClick={handleClearCart}
-                  disabled={isCartLoading}
+                  disabled={isLoading}
                   className="text-red-500 border-red-200 hover:bg-red-50"
                 >
                   Clear Cart
@@ -235,9 +252,9 @@ const Cart = () => {
                     <Link to="/checkout">
                       <Button
                         className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90"
-                        disabled={isCartLoading}
+                        disabled={isLoading}
                       >
-                        {isCartLoading ? "Updating..." : "Proceed to Checkout"}
+                        {isLoading ? "Updating..." : "Proceed to Checkout"}
                       </Button>
                     </Link>
                   </div>

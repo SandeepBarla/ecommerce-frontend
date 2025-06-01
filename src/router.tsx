@@ -17,12 +17,17 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import OrderSuccess from "./pages/OrderSuccess";
 import ProductDetails from "./pages/ProductDetails";
+import Products from "./pages/Products";
 import Wishlist from "./pages/Wishlist";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <Index />,
+  },
+  {
+    path: "/products",
+    element: <Products />,
   },
   {
     path: "/product/:productId",

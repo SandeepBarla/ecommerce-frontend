@@ -1,38 +1,17 @@
-import { fetchProductById } from "@/api/products";
+import { fetchProductById, updateProduct } from "@/api/products";
 import ProductForm from "@/components/admin/ProductForm";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { ProductResponse } from "@/types/product/ProductResponse";
+import { ProductUpsertRequest } from "@/types/product/ProductUpsertRequest";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-
-function mapApiProductToFormProduct(apiProduct: ProductResponse | undefined) {
-  if (!apiProduct) return null;
-  return {
-    id: String(apiProduct.id),
-    name: apiProduct.name,
-    description: apiProduct.description,
-    price: apiProduct.price,
-    originalPrice: undefined,
-    images: apiProduct.media.map((m) => m.mediaUrl),
-    category: "",
-    tags: [],
-    colors: [],
-    sizes: [],
-    stockQuantity: apiProduct.stock,
-    isNew: false,
-    isFeatured: false,
-    discount: undefined,
-  };
-}
 
 const AdminProductEdit = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { isAdmin, isAuthenticated } = useAuth();
-  const isNewProduct = productId === undefined;
 
   const {
     data: apiProduct,
@@ -44,14 +23,25 @@ const AdminProductEdit = () => {
     enabled: !!productId,
   });
 
-  const product = mapApiProductToFormProduct(apiProduct);
+  const handleSubmit = async (data: ProductUpsertRequest) => {
+    try {
+      if (productId) {
+        await updateProduct(Number(productId), data);
+        toast.success("Product updated successfully!");
+        navigate("/admin/products");
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product");
+    }
+  };
 
   if (!isAuthenticated || !isAdmin) {
     navigate("/login?redirect=/admin");
     return null;
   }
 
-  if (!isNewProduct && isLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         {/* Header Skeleton */}
@@ -117,7 +107,7 @@ const AdminProductEdit = () => {
     );
   }
 
-  if (!isNewProduct && (error || !product)) {
+  if (error || !apiProduct) {
     toast.error("Product not found");
     navigate("/admin/products");
     return null;
@@ -126,16 +116,10 @@ const AdminProductEdit = () => {
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">
-          {isNewProduct ? "Add New Product" : "Edit Product"}
-        </h1>
+        <h1 className="text-2xl font-semibold">Edit Product</h1>
       </div>
 
-      <ProductForm
-        initialProduct={product}
-        isNew={isNewProduct}
-        productId={productId}
-      />
+      <ProductForm initialData={apiProduct} onSubmit={handleSubmit} />
     </>
   );
 };

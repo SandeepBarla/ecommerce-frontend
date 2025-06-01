@@ -12,6 +12,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
+import { getEffectivePrice } from "@/lib/utils";
 import { Eye, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -71,7 +72,10 @@ const AccountOrders = () => {
               orderItems.push({
                 id: product.id,
                 name: product.name,
-                price: product.price,
+                price: getEffectivePrice(
+                  product.originalPrice,
+                  product.discountedPrice
+                ),
                 quantity: orderProduct.quantity,
                 image:
                   product.media?.[0]?.mediaUrl || "/placeholder-product.jpg",

@@ -3,6 +3,7 @@ import { fetchProducts } from "@/api/products";
 import { getAllUsers } from "@/api/users";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { formatPrice, getEffectivePrice } from "@/lib/utils";
 import { OrderResponse } from "@/types/order/OrderResponse";
 import { ProductListResponse } from "@/types/product/ProductListResponse";
 import { UserResponse } from "@/types/user/UserResponse";
@@ -161,7 +162,13 @@ const AdminDashboard = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ₹{product.price.toLocaleString()}
+                      ₹
+                      {formatPrice(
+                        getEffectivePrice(
+                          product.originalPrice,
+                          product.discountedPrice
+                        )
+                      )}
                     </p>
                     <div className="w-24">
                       <Progress value={75 - product.id * 10} className="h-1" />

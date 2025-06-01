@@ -1,3 +1,4 @@
+import { getEffectivePrice } from "../lib/utils";
 import { CartItemResponse, CartResponse } from "../types/cart/CartResponse";
 import api from "./api"; // Import Axios instance
 
@@ -63,7 +64,13 @@ export const clearCart = async (userId: number): Promise<void> => {
 // ✅ Helper function to get cart total from items
 export const calculateCartTotal = (cartItems: CartItemResponse[]): number => {
   return cartItems.reduce(
-    (total, item) => total + item.product.price * item.quantity,
+    (total, item) =>
+      total +
+      getEffectivePrice(
+        item.product.originalPrice,
+        item.product.discountedPrice
+      ) *
+        item.quantity,
     0
   );
 };

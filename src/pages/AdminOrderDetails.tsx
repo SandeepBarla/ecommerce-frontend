@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { getEffectivePrice } from "@/lib/utils";
 import { ArrowLeft, MapPin, Package, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -98,7 +99,10 @@ const AdminOrderDetails = () => {
               productName: product.name,
               productImage:
                 product.media?.[0]?.mediaUrl || "/placeholder-product.jpg",
-              price: product.price,
+              price: getEffectivePrice(
+                product.originalPrice,
+                product.discountedPrice
+              ),
               quantity: orderProduct.quantity,
             });
           } catch (err) {
@@ -126,7 +130,9 @@ const AdminOrderDetails = () => {
           date: foundOrder.orderDate,
           paymentMethod: foundOrder.paymentStatus || "UPI", // Default to UPI if not specified
           items: orderItems,
-          address: foundOrder.shippingAddress,
+          address: foundOrder.addressId
+            ? `Address ID: ${foundOrder.addressId}`
+            : "No address",
           trackingNumber: foundOrder.trackingNumber,
           userId: foundOrder.userId,
         };

@@ -1,31 +1,20 @@
-import CloseIcon from "@mui/icons-material/Close";
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogContent,
-  Divider,
-  IconButton,
-  Slide,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
-import React, { useContext, useState } from "react";
-import { loginUser, loginWithGoogle } from "../api/auth";
+import { AlertCircle, Loader2 } from "lucide-react";
+import React, { useState } from "react";
+import { toast } from "sonner";
+import { loginWithGoogle } from "../api/auth";
 import { registerUser } from "../api/users";
-import { AuthContext } from "../context/AuthContext";
-import { useLoading } from "../context/LoadingContext";
 import {
   UserLoginRequest,
   UserRegisterRequest,
 } from "../types/user/UserRequest";
-
-const SlideUp = (props: React.ComponentProps<typeof Slide>) => (
-  <Slide direction="up" {...props} />
-);
 
 interface LoginDialogProps {
   open: boolean;
@@ -33,8 +22,7 @@ interface LoginDialogProps {
 }
 
 const LoginDialog = ({ open, onClose }: LoginDialogProps) => {
-  const authContext = useContext(AuthContext);
-  const { setLoading } = useLoading();
+  const { login, loginWithGoogleContext } = useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [formData, setFormData] = useState<
     UserLoginRequest | UserRegisterRequest
@@ -44,10 +32,7 @@ const LoginDialog = ({ open, onClose }: LoginDialogProps) => {
     ...(mode === "register" ? { fullName: "" } : {}),
   });
   const [error, setError] = useState<string | null>(null);
-  const [localLoading, setLocalLoading] = useState<boolean>(false);
-
-  if (!authContext) return null;
-  const { login } = authContext;
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -56,31 +41,38 @@ const LoginDialog = ({ open, onClose }: LoginDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLocalLoading(true);
     setLoading(true);
+
     try {
       if (mode === "login") {
-        const response = await loginUser(formData as UserLoginRequest);
-        login(response.token, response.role);
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("role", response.role);
-        localStorage.setItem("userId", response.userId.toString());
+        const success = await login(formData.email, formData.password);
+        if (success) {
+          toast.success("Successfully logged in!");
+          onClose();
+        } else {
+          setError("Invalid email or password. Please try again.");
+        }
       } else {
-        const response = await registerUser(formData as UserRegisterRequest);
-        login(response.token, response.role);
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("role", response.role);
-        localStorage.setItem("userId", response.userId.toString());
+        await registerUser(formData as UserRegisterRequest);
+        const success = await login(formData.email, formData.password);
+        if (success) {
+          toast.success("Account created successfully!");
+          onClose();
+        } else {
+          setError(
+            "Registration succeeded but login failed. Please try logging in manually."
+          );
+        }
       }
-      onClose();
-    } catch {
-      setError(
+    } catch (error) {
+      console.error("Authentication error:", error);
+      const errorMessage =
         mode === "login"
           ? "Invalid email or password. Please try again."
-          : "Registration failed. Please try again."
-      );
+          : "Registration failed. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-      setLocalLoading(false);
       setLoading(false);
     }
   };
@@ -90,20 +82,20 @@ const LoginDialog = ({ open, onClose }: LoginDialogProps) => {
   ) => {
     setError(null);
     setLoading(true);
+
     try {
       if (!credentialResponse.credential) {
-        setError("Google login failed. Try again.");
-        setLoading(false);
-        return;
+        throw new Error("No credential received");
       }
+
       const response = await loginWithGoogle(credentialResponse.credential);
-      login(response.token, response.role);
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("role", response.role);
-      localStorage.setItem("userId", response.userId.toString());
+      await loginWithGoogleContext(response);
       onClose();
-    } catch {
-      setError("Google sign-in failed. Please try again.");
+    } catch (error) {
+      console.error("Google login error:", error);
+      const errorMessage = "Google sign-in failed. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -117,143 +109,136 @@ const LoginDialog = ({ open, onClose }: LoginDialogProps) => {
       ...(mode === "register" ? { fullName: "" } : {}),
     });
     setError(null);
-    setLocalLoading(false);
+    setLoading(false);
   }, [open, mode]);
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="xs"
-      scroll="body"
-      TransitionComponent={SlideUp}
-      PaperProps={{
-        sx: {
-          borderRadius: { xs: "18px 18px 0 0", sm: 3 },
-          pb: 2,
-          pt: 0,
-          m: 0,
-        },
-      }}
-    >
-      <DialogContent sx={{ p: 0 }}>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
-          <IconButton onClick={onClose} size="large">
-            <CloseIcon />
-          </IconButton>
-        </Box>
-        <Box sx={{ px: 3, pb: 2, pt: 0, textAlign: "center" }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
-            {mode === "login" ? "Log in to your account" : "Create an account"}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
-            {mode === "login"
-              ? "Access your favorites, cart, and more."
-              : "Join us for a personalized shopping experience!"}
-          </Typography>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} autoComplete="off">
-            {mode === "register" && (
-              <TextField
-                fullWidth
-                label="Full Name"
-                name="fullName"
-                value={(formData as UserRegisterRequest).fullName || ""}
-                onChange={handleChange}
-                margin="normal"
-                required
-              />
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md p-0">
+        <Card className="border-0 shadow-none">
+          <CardHeader className="space-y-1 text-center pb-4">
+            <CardTitle className="text-2xl font-serif">
+              {mode === "login" ? "Welcome back" : "Create account"}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {mode === "login"
+                ? "Access your favorites, cart, and more."
+                : "Join us for a personalized shopping experience!"}
+            </p>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                {error}
+              </div>
             )}
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              margin="normal"
-              required
-              type="email"
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ mt: 2, mb: 1.5, borderRadius: 2, fontWeight: "bold" }}
-              disabled={localLoading}
-            >
-              {localLoading ? (
-                <CircularProgress size={24} sx={{ color: "white" }} />
-              ) : mode === "login" ? (
-                "Login"
-              ) : (
-                "Register"
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === "register" && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    value={(formData as UserRegisterRequest).fullName || ""}
+                    onChange={handleChange}
+                    required
+                    placeholder="Your full name"
+                  />
+                </div>
               )}
-            </Button>
-          </form>
-          <Divider sx={{ my: 2 }}>or</Divider>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => {
-              setError("Google login was unsuccessful. Please try again.");
-            }}
-            width="100%"
-          />
-          <Typography sx={{ mt: 2 }}>
-            {mode === "login" ? (
-              <>
-                Don&apos;t have an account?{" "}
-                <Button
-                  variant="text"
-                  size="small"
-                  sx={{
-                    color: "#1976d2",
-                    fontWeight: "bold",
-                    textTransform: "none",
-                    p: 0,
-                    minWidth: 0,
-                  }}
-                  onClick={() => setMode("register")}
-                >
-                  Register here
-                </Button>
-              </>
-            ) : (
-              <>
-                Already have an account?{" "}
-                <Button
-                  variant="text"
-                  size="small"
-                  sx={{
-                    color: "#1976d2",
-                    fontWeight: "bold",
-                    textTransform: "none",
-                    p: 0,
-                    minWidth: 0,
-                  }}
-                  onClick={() => setMode("login")}
-                >
-                  Login here
-                </Button>
-              </>
-            )}
-          </Typography>
-        </Box>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="your@email.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {mode === "login" ? "Signing in..." : "Creating account..."}
+                  </>
+                ) : mode === "login" ? (
+                  "Sign In"
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  OR CONTINUE WITH
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => {
+                  setError("Google sign-in failed. Please try again.");
+                  toast.error("Google sign-in failed. Please try again.");
+                }}
+                useOneTap={false}
+                size="large"
+                width="100%"
+                theme="filled_blue"
+                text="signin_with"
+                shape="pill"
+                logo_alignment="center"
+              />
+            </div>
+
+            <div className="text-center text-sm">
+              <Separator className="my-4" />
+              <span className="text-muted-foreground">
+                {mode === "login"
+                  ? "Don't have an account? "
+                  : "Already have an account? "}
+              </span>
+              <button
+                type="button"
+                onClick={() => setMode(mode === "login" ? "register" : "login")}
+                className="text-ethnic-purple hover:text-ethnic-purple/80 font-medium hover:underline"
+              >
+                {mode === "login" ? "Sign up" : "Sign in"}
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       </DialogContent>
     </Dialog>
   );
