@@ -5,7 +5,6 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/hooks/useCart";
 import {
-  Award,
   Heart,
   Home,
   Menu,
@@ -46,7 +45,6 @@ const Header = () => {
       path: "/new-arrivals",
       icon: <Package size={18} />,
     },
-    { name: "Best Sellers", path: "/best-sellers", icon: <Award size={18} /> },
     { name: "Offers", path: "/offers", icon: <Tag size={18} /> },
   ];
 

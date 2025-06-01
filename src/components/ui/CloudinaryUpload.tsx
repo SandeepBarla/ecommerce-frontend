@@ -1,15 +1,17 @@
 import { cn } from "@/lib/utils";
-import { Image, Loader2, Upload, X } from "lucide-react";
+import { Image, Loader2, Upload, Video, X } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { Button } from "./button";
 
 interface CloudinaryUploadProps {
-  onUploadSuccess: (url: string) => void;
+  onUploadSuccess: (url: string, type: "Image" | "Video") => void;
   onUploadError?: (error: string) => void;
   className?: string;
   disabled?: boolean;
   acceptedFormats?: string;
   maxFileSize?: number; // in MB
+  folder?: string; // Cloudinary folder path
+  supportedTypes?: ("Image" | "Video")[]; // What types are supported
 }
 
 export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
@@ -17,13 +19,24 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
   onUploadError,
   className,
   disabled = false,
-  acceptedFormats = "image/*",
-  maxFileSize = 5,
+  acceptedFormats = "image/*,video/*",
+  maxFileSize = 10,
+  folder = "payment-proofs", // Default folder
+  supportedTypes = ["Image", "Video"],
 }) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<"Image" | "Video" | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const getFileType = (file: File): "Image" | "Video" | null => {
+    if (file.type.startsWith("image/")) return "Image";
+    if (file.type.startsWith("video/")) return "Video";
+    return null;
+  };
 
   const uploadToCloudinary = async (file: File): Promise<string> => {
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -38,15 +51,18 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", uploadPreset);
-    formData.append("folder", "payment-proofs"); // Organize uploads in folders
+    formData.append("folder", folder);
 
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    // Use video upload endpoint for videos
+    const isVideo = file.type.startsWith("video/");
+    const uploadUrl = isVideo
+      ? `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`
+      : `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      body: formData,
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -66,18 +82,28 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
     // Reset previous states
     setError(null);
     setPreviewUrl(null);
+    setPreviewType(null);
 
-    // Validate file size
-    if (file.size > maxFileSize * 1024 * 1024) {
-      const errorMsg = `File size must be less than ${maxFileSize}MB`;
+    // Validate file type
+    const fileType = getFileType(file);
+    if (!fileType) {
+      const errorMsg = "Please select a valid image or video file";
       setError(errorMsg);
       onUploadError?.(errorMsg);
       return;
     }
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      const errorMsg = "Please select a valid image file";
+    if (!supportedTypes.includes(fileType)) {
+      const errorMsg = `${fileType} files are not supported for this upload`;
+      setError(errorMsg);
+      onUploadError?.(errorMsg);
+      return;
+    }
+
+    // Validate file size (videos can be larger)
+    const maxSize = fileType === "Video" ? maxFileSize * 2 : maxFileSize; // Allow 2x size for videos
+    if (file.size > maxSize * 1024 * 1024) {
+      const errorMsg = `File size must be less than ${maxSize}MB for ${fileType.toLowerCase()}s`;
       setError(errorMsg);
       onUploadError?.(errorMsg);
       return;
@@ -89,17 +115,19 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
       // Create preview
       const preview = URL.createObjectURL(file);
       setPreviewUrl(preview);
+      setPreviewType(fileType);
 
       // Upload to Cloudinary
       const uploadedUrl = await uploadToCloudinary(file);
 
-      // Success callback
-      onUploadSuccess(uploadedUrl);
+      // Success callback with type
+      onUploadSuccess(uploadedUrl, fileType);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Upload failed";
       setError(errorMsg);
       onUploadError?.(errorMsg);
       setPreviewUrl(null);
+      setPreviewType(null);
     } finally {
       setUploading(false);
       // Reset file input
@@ -111,10 +139,30 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
 
   const clearPreview = () => {
     setPreviewUrl(null);
+    setPreviewType(null);
     setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const getUploadText = () => {
+    if (folder === "product-images") {
+      if (supportedTypes.length === 1) {
+        return supportedTypes[0] === "Image"
+          ? "Click to upload product image"
+          : "Click to upload product video";
+      }
+      return "Click to upload product image or video";
+    }
+    return "Click to upload payment proof";
+  };
+
+  const getFileFormatsText = () => {
+    const formats = [];
+    if (supportedTypes.includes("Image")) formats.push("PNG, JPG");
+    if (supportedTypes.includes("Video")) formats.push("MP4, MOV");
+    return formats.join(", ");
   };
 
   return (
@@ -144,12 +192,24 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
             </>
           ) : (
             <>
-              <Upload className="h-8 w-8 text-gray-400" />
-              <span className="text-sm text-gray-600">
-                Click to upload payment proof
+              <div className="flex items-center gap-2">
+                {supportedTypes.includes("Image") && (
+                  <Image className="h-6 w-6 text-gray-400" />
+                )}
+                {supportedTypes.includes("Video") && (
+                  <Video className="h-6 w-6 text-gray-400" />
+                )}
+                {supportedTypes.length === 2 && (
+                  <Upload className="h-6 w-6 text-gray-400" />
+                )}
+              </div>
+              <span className="text-sm text-gray-600 text-center">
+                {getUploadText()}
               </span>
               <span className="text-xs text-gray-400">
-                PNG, JPG up to {maxFileSize}MB
+                {getFileFormatsText()} up to {maxFileSize}MB
+                {supportedTypes.includes("Video") &&
+                  ` (${maxFileSize * 2}MB for videos)`}
               </span>
             </>
           )}
@@ -157,14 +217,25 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
       </div>
 
       {/* Preview */}
-      {previewUrl && (
+      {previewUrl && previewType && (
         <div className="relative">
           <div className="relative border border-gray-200 rounded-lg p-2">
-            <img
-              src={previewUrl}
-              alt="Payment proof preview"
-              className="w-full h-48 object-cover rounded"
-            />
+            {previewType === "Image" ? (
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full h-48 object-cover rounded"
+              />
+            ) : (
+              <video
+                src={previewUrl}
+                controls
+                className="w-full h-48 object-cover rounded"
+                preload="metadata"
+              >
+                Your browser does not support the video tag.
+              </video>
+            )}
             <Button
               type="button"
               variant="destructive"
@@ -176,8 +247,12 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({
             </Button>
           </div>
           <p className="text-sm text-green-600 mt-2 flex items-center">
-            <Image className="h-4 w-4 mr-1" />
-            Upload successful! Image ready to submit.
+            {previewType === "Image" ? (
+              <Image className="h-4 w-4 mr-1" />
+            ) : (
+              <Video className="h-4 w-4 mr-1" />
+            )}
+            Upload successful! {previewType} ready to submit.
           </p>
         </div>
       )}

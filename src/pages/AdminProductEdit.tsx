@@ -1,4 +1,4 @@
-import { fetchProductById, updateProduct } from "@/api/products";
+import { createProduct, fetchProductById, updateProduct } from "@/api/products";
 import ProductForm from "@/components/admin/ProductForm";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +12,7 @@ const AdminProductEdit = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { isAdmin, isAuthenticated } = useAuth();
+  const isEditing = !!productId; // Determine if we're editing or creating
 
   const {
     data: apiProduct,
@@ -20,19 +21,27 @@ const AdminProductEdit = () => {
   } = useQuery({
     queryKey: ["product", productId],
     queryFn: () => fetchProductById(Number(productId)),
-    enabled: !!productId,
+    enabled: isEditing, // Only fetch if we're editing
   });
 
   const handleSubmit = async (data: ProductUpsertRequest) => {
     try {
-      if (productId) {
+      if (isEditing) {
+        // Update existing product
         await updateProduct(Number(productId), data);
         toast.success("Product updated successfully!");
-        navigate("/admin/products");
+      } else {
+        // Create new product
+        await createProduct(data);
+        toast.success("Product created successfully!");
       }
+      navigate("/admin/products");
     } catch (error) {
-      console.error("Error updating product:", error);
-      toast.error("Failed to update product");
+      console.error(
+        `Error ${isEditing ? "updating" : "creating"} product:`,
+        error
+      );
+      toast.error(`Failed to ${isEditing ? "update" : "create"} product`);
     }
   };
 
@@ -41,7 +50,8 @@ const AdminProductEdit = () => {
     return null;
   }
 
-  if (isLoading) {
+  // Show loading only when editing and fetching data
+  if (isEditing && isLoading) {
     return (
       <div className="space-y-6">
         {/* Header Skeleton */}
@@ -107,7 +117,8 @@ const AdminProductEdit = () => {
     );
   }
 
-  if (error || !apiProduct) {
+  // Handle error only when editing
+  if (isEditing && (error || !apiProduct)) {
     toast.error("Product not found");
     navigate("/admin/products");
     return null;
@@ -116,10 +127,15 @@ const AdminProductEdit = () => {
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Edit Product</h1>
+        <h1 className="text-2xl font-semibold">
+          {isEditing ? "Edit Product" : "Add New Product"}
+        </h1>
       </div>
 
-      <ProductForm initialData={apiProduct} onSubmit={handleSubmit} />
+      <ProductForm
+        initialData={isEditing ? apiProduct : undefined}
+        onSubmit={handleSubmit}
+      />
     </>
   );
 };

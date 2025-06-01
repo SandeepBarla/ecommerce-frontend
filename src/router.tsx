@@ -75,10 +75,6 @@ export const router = createBrowserRouter([
     element: <CollectionPage />,
   },
   {
-    path: "/best-sellers",
-    element: <CollectionPage />,
-  },
-  {
     path: "/offers",
     element: <CollectionPage />,
   },

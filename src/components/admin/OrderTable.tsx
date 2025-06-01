@@ -22,10 +22,15 @@ import {
 import { OrderResponse } from "@/types/order/OrderResponse";
 import { UserResponse } from "@/types/user/UserResponse";
 import {
+  AlertCircle,
   Calendar,
+  Check,
   DollarSign,
   ExternalLink,
+  MapPin,
+  Save,
   Search,
+  Undo2,
   User,
   X,
 } from "lucide-react";
@@ -33,16 +38,17 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
+// Updated status options to match backend validation
 const statusOptions = [
-  { value: "pending", label: "Pending", color: "text-yellow-600" },
-  { value: "processing", label: "Processing", color: "text-blue-600" },
-  { value: "shipped", label: "Shipped", color: "text-purple-600" },
-  { value: "delivered", label: "Delivered", color: "text-green-600" },
-  { value: "cancelled", label: "Cancelled", color: "text-red-600" },
+  { value: "Pending", label: "Pending", color: "text-yellow-600" },
+  { value: "Processing", label: "Processing", color: "text-blue-600" },
+  { value: "Shipped", label: "Shipped", color: "text-purple-600" },
+  { value: "Delivered", label: "Delivered", color: "text-green-600" },
+  { value: "Cancelled", label: "Cancelled", color: "text-red-600" },
 ];
 
 const getStatusStyles = (status: string) => {
-  switch (status) {
+  switch (status?.toLowerCase()) {
     case "delivered":
       return "bg-green-100 text-green-600 border-green-300";
     case "processing":
@@ -65,7 +71,12 @@ const OrderTable = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [updating, setUpdating] = useState<number | null>(null);
+
+  // Controlled status update state
+  const [pendingStatusChanges, setPendingStatusChanges] = useState<
+    Record<number, string>
+  >({});
+  const [savingStatus, setSavingStatus] = useState<number | null>(null);
 
   // Get user filter from URL parameters
   const userIdFilter = searchParams.get("userId");
@@ -97,7 +108,7 @@ const OrderTable = () => {
     users.find((u) => String(u.id) === String(userId));
 
   const filteredOrders = orders.filter((order) => {
-    const user = getUser(order.userId);
+    const user = order.customer || getUser(order.userId);
     if (!user) return false;
     const customer = user.fullName || "";
     const email = user.email || "";
@@ -118,11 +129,19 @@ const OrderTable = () => {
     );
   });
 
-  const handleStatusChange = async (
-    order: OrderResponse,
-    newStatus: string
-  ) => {
-    setUpdating(order.id);
+  // Handle controlled status change (doesn't save immediately)
+  const handleStatusSelectionChange = (orderId: number, newStatus: string) => {
+    setPendingStatusChanges((prev) => ({ ...prev, [orderId]: newStatus }));
+  };
+
+  // Save status change with confirmation
+  const saveStatusChange = async (order: OrderResponse) => {
+    const newStatus = pendingStatusChanges[order.id];
+    if (!newStatus || newStatus === order.orderStatus) {
+      return; // No change needed
+    }
+
+    setSavingStatus(order.id);
     try {
       await updateOrderStatus(order.userId, order.id, { status: newStatus });
       setOrders((prev) =>
@@ -130,14 +149,30 @@ const OrderTable = () => {
           o.id === order.id ? { ...o, orderStatus: newStatus } : o
         )
       );
-      toast.success(`Order ${order.id} status updated to ${newStatus}`);
+      setPendingStatusChanges((prev) => {
+        const updated = { ...prev };
+        delete updated[order.id];
+        return updated;
+      });
+      toast.success(`Order #${order.id} status updated to ${newStatus}`, {
+        description: `Customer: ${order.customer?.fullName || "Unknown"}`,
+      });
     } catch (err: unknown) {
       toast.error(
         err instanceof Error ? err.message : "Failed to update order status"
       );
     } finally {
-      setUpdating(null);
+      setSavingStatus(null);
     }
+  };
+
+  // Cancel pending status change
+  const cancelStatusChange = (orderId: number) => {
+    setPendingStatusChanges((prev) => {
+      const updated = { ...prev };
+      delete updated[orderId];
+      return updated;
+    });
   };
 
   const handleViewOrderDetails = (orderId: number) => {
@@ -149,6 +184,16 @@ const OrderTable = () => {
       params.delete("userId");
       return params;
     });
+  };
+
+  // Get effective status (pending change or current)
+  const getEffectiveStatus = (order: OrderResponse) => {
+    return pendingStatusChanges[order.id] || order.orderStatus;
+  };
+
+  // Check if order has pending changes
+  const hasPendingChanges = (orderId: number) => {
+    return pendingStatusChanges[orderId] !== undefined;
   };
 
   return (
@@ -179,7 +224,7 @@ const OrderTable = () => {
         <div className="relative flex-1 w-full">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            placeholder="Search orders..."
+            placeholder="Search orders by customer, email, or order ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 w-full"
@@ -195,7 +240,7 @@ const OrderTable = () => {
               {statusOptions.map((opt) => (
                 <SelectItem
                   key={opt.value}
-                  value={opt.value}
+                  value={opt.value.toLowerCase()}
                   className={opt.color}
                 >
                   {opt.label}
@@ -216,6 +261,7 @@ const OrderTable = () => {
                 <TableRow>
                   <TableHead>Order ID</TableHead>
                   <TableHead>Customer</TableHead>
+                  <TableHead>Address</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
@@ -233,6 +279,9 @@ const OrderTable = () => {
                         <Skeleton className="h-4 w-24 mb-1" />
                         <Skeleton className="h-3 w-32" />
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-20" />
@@ -257,7 +306,6 @@ const OrderTable = () => {
             {Array.from({ length: 4 }).map((_, index) => (
               <Card key={index} className="p-4">
                 <CardContent className="p-0 space-y-3">
-                  {/* Order ID and Actions */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Skeleton className="h-4 w-12" />
@@ -265,8 +313,6 @@ const OrderTable = () => {
                     </div>
                     <Skeleton className="h-8 w-8 rounded" />
                   </div>
-
-                  {/* Customer Info */}
                   <div className="flex items-start gap-2">
                     <Skeleton className="h-4 w-4 mt-0.5 rounded" />
                     <div className="flex-1">
@@ -274,8 +320,6 @@ const OrderTable = () => {
                       <Skeleton className="h-3 w-32" />
                     </div>
                   </div>
-
-                  {/* Date and Total */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <Skeleton className="h-4 w-4 rounded" />
@@ -292,8 +336,6 @@ const OrderTable = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Status */}
                   <div>
                     <Skeleton className="h-3 w-10 mb-1" />
                     <Skeleton className="h-8 w-full rounded" />
@@ -304,7 +346,10 @@ const OrderTable = () => {
           </div>
         </>
       ) : error ? (
-        <div className="text-center py-8 text-red-500">{error}</div>
+        <div className="text-center py-8 text-red-500 flex items-center justify-center gap-2">
+          <AlertCircle className="h-5 w-5" />
+          {error}
+        </div>
       ) : (
         <>
           {/* Desktop Table View */}
@@ -314,6 +359,7 @@ const OrderTable = () => {
                 <TableRow>
                   <TableHead>Order ID</TableHead>
                   <TableHead>Customer</TableHead>
+                  <TableHead>Shipping Address</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
@@ -324,7 +370,7 @@ const OrderTable = () => {
                 {filteredOrders.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={7}
                       className="text-center py-8 text-gray-500"
                     >
                       No orders found
@@ -332,60 +378,143 @@ const OrderTable = () => {
                   </TableRow>
                 ) : (
                   filteredOrders.map((order) => {
-                    const user = getUser(order.userId);
+                    const user = order.customer || getUser(order.userId);
+                    const effectiveStatus = getEffectiveStatus(order);
+                    const hasChanges = hasPendingChanges(order.id);
+
                     return (
-                      <TableRow key={order.id}>
+                      <TableRow
+                        key={order.id}
+                        className={hasChanges ? "bg-blue-50" : ""}
+                      >
                         <TableCell className="font-medium">
-                          {order.id}
+                          #{order.id}
+                          {hasChanges && (
+                            <span className="ml-2">
+                              <AlertCircle className="h-4 w-4 text-blue-600 inline" />
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div>{user?.fullName || "-"}</div>
+                            <div className="font-medium">
+                              {user?.fullName || "-"}
+                            </div>
                             <div className="text-xs text-gray-500">
                               {user?.email || "-"}
                             </div>
+                            {user?.phone && (
+                              <div className="text-xs text-gray-500">
+                                📱 {user.phone}
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          {new Date(order.orderDate).toLocaleDateString()}
+                          {order.address ? (
+                            <div className="text-sm">
+                              <div className="font-medium">
+                                {order.address.name}
+                              </div>
+                              <div className="text-gray-600 text-xs">
+                                {order.address.street}
+                              </div>
+                              <div className="text-gray-600 text-xs">
+                                {order.address.city}, {order.address.state}{" "}
+                                {order.address.pincode}
+                              </div>
+                              <div className="text-gray-600 text-xs">
+                                📱 {order.address.phone}
+                              </div>
+                            </div>
+                          ) : order.addressId ? (
+                            <div className="text-sm text-gray-500">
+                              Address ID: {order.addressId}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-400">
+                              No address
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
-                          ₹{order.totalAmount.toLocaleString()}
+                          <div className="text-sm">
+                            {new Date(order.orderDate).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(order.orderDate).toLocaleTimeString()}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Select
-                            value={
-                              statusOptions.some(
-                                (opt) =>
-                                  opt.value === order.orderStatus?.toLowerCase()
-                              )
-                                ? order.orderStatus.toLowerCase()
-                                : "pending"
-                            }
-                            onValueChange={(value) =>
-                              handleStatusChange(order, value)
-                            }
-                            disabled={updating === order.id}
-                          >
-                            <SelectTrigger
-                              className={`w-[110px] h-8 text-xs border ${getStatusStyles(
-                                order.orderStatus
-                              )}`}
+                          <div className="font-medium">
+                            ₹{order.totalAmount.toLocaleString()}
+                          </div>
+                          {order.paymentProofUrl && (
+                            <div className="text-xs text-green-600">
+                              💳 Payment proof uploaded
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-2">
+                            <Select
+                              value={effectiveStatus}
+                              onValueChange={(value) =>
+                                handleStatusSelectionChange(order.id, value)
+                              }
+                              disabled={savingStatus === order.id}
                             >
-                              <SelectValue placeholder={order.orderStatus} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {statusOptions.map((opt) => (
-                                <SelectItem
-                                  key={opt.value}
-                                  value={opt.value}
-                                  className={opt.color}
+                              <SelectTrigger
+                                className={`w-[120px] h-8 text-xs border ${getStatusStyles(
+                                  effectiveStatus
+                                )} ${
+                                  hasChanges
+                                    ? "border-blue-400 ring-1 ring-blue-200"
+                                    : ""
+                                }`}
+                              >
+                                <SelectValue placeholder={effectiveStatus} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {statusOptions.map((opt) => (
+                                  <SelectItem
+                                    key={opt.value}
+                                    value={opt.value}
+                                    className={opt.color}
+                                  >
+                                    {opt.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            {hasChanges && (
+                              <div className="flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 px-2 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                                  onClick={() => saveStatusChange(order)}
+                                  disabled={savingStatus === order.id}
                                 >
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                                  {savingStatus === order.id ? (
+                                    <span className="h-3 w-3 border border-green-600 border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <Check className="h-3 w-3" />
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 px-2 text-xs bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                                  onClick={() => cancelStatusChange(order.id)}
+                                  disabled={savingStatus === order.id}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -414,10 +543,18 @@ const OrderTable = () => {
               </div>
             ) : (
               filteredOrders.map((order) => {
-                const user = getUser(order.userId);
+                const user = order.customer || getUser(order.userId);
+                const effectiveStatus = getEffectiveStatus(order);
+                const hasChanges = hasPendingChanges(order.id);
+
                 return (
-                  <Card key={order.id} className="p-4">
-                    <CardContent className="p-0 space-y-3">
+                  <Card
+                    key={order.id}
+                    className={`p-4 ${
+                      hasChanges ? "border-blue-200 bg-blue-50" : ""
+                    }`}
+                  >
+                    <CardContent className="p-0 space-y-4">
                       {/* Order ID and Actions */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -425,6 +562,9 @@ const OrderTable = () => {
                             Order
                           </span>
                           <span className="font-semibold">#{order.id}</span>
+                          {hasChanges && (
+                            <AlertCircle className="h-4 w-4 text-blue-600" />
+                          )}
                         </div>
                         <Button
                           variant="ghost"
@@ -440,14 +580,41 @@ const OrderTable = () => {
                       <div className="flex items-start gap-2">
                         <User className="h-4 w-4 text-gray-500 mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">
+                          <div className="font-medium">
                             {user?.fullName || "-"}
                           </div>
-                          <div className="text-sm text-gray-500 truncate">
+                          <div className="text-sm text-gray-500">
                             {user?.email || "-"}
                           </div>
+                          {user?.phone && (
+                            <div className="text-sm text-gray-500">
+                              📱 {user.phone}
+                            </div>
+                          )}
                         </div>
                       </div>
+
+                      {/* Address */}
+                      {order.address && (
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium">
+                              {order.address.name}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {order.address.street}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {order.address.city}, {order.address.state}{" "}
+                              {order.address.pincode}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              📱 {order.address.phone}
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Date and Total */}
                       <div className="grid grid-cols-2 gap-4">
@@ -467,46 +634,83 @@ const OrderTable = () => {
                             <div className="text-sm font-medium">
                               ₹{order.totalAmount.toLocaleString()}
                             </div>
+                            {order.paymentProofUrl && (
+                              <div className="text-xs text-green-600">
+                                💳 Payment proof
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
 
                       {/* Status */}
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Status</div>
-                        <Select
-                          value={
-                            statusOptions.some(
-                              (opt) =>
-                                opt.value === order.orderStatus?.toLowerCase()
-                            )
-                              ? order.orderStatus.toLowerCase()
-                              : "pending"
-                          }
-                          onValueChange={(value) =>
-                            handleStatusChange(order, value)
-                          }
-                          disabled={updating === order.id}
-                        >
-                          <SelectTrigger
-                            className={`w-full h-8 text-xs border ${getStatusStyles(
-                              order.orderStatus
-                            )}`}
+                        <div className="text-xs text-gray-500 mb-2">Status</div>
+                        <div className="space-y-2">
+                          <Select
+                            value={effectiveStatus}
+                            onValueChange={(value) =>
+                              handleStatusSelectionChange(order.id, value)
+                            }
+                            disabled={savingStatus === order.id}
                           >
-                            <SelectValue placeholder={order.orderStatus} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {statusOptions.map((opt) => (
-                              <SelectItem
-                                key={opt.value}
-                                value={opt.value}
-                                className={opt.color}
+                            <SelectTrigger
+                              className={`w-full h-8 text-xs border ${getStatusStyles(
+                                effectiveStatus
+                              )} ${
+                                hasChanges
+                                  ? "border-blue-400 ring-1 ring-blue-200"
+                                  : ""
+                              }`}
+                            >
+                              <SelectValue placeholder={effectiveStatus} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statusOptions.map((opt) => (
+                                <SelectItem
+                                  key={opt.value}
+                                  value={opt.value}
+                                  className={opt.color}
+                                >
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          {hasChanges && (
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                className="flex-1 h-8 text-xs bg-green-600 hover:bg-green-700"
+                                onClick={() => saveStatusChange(order)}
+                                disabled={savingStatus === order.id}
                               >
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                                {savingStatus === order.id ? (
+                                  <>
+                                    <span className="h-3 w-3 border border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                    Saving...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Save className="h-3 w-3 mr-1" />
+                                    Save
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 h-8 text-xs"
+                                onClick={() => cancelStatusChange(order.id)}
+                                disabled={savingStatus === order.id}
+                              >
+                                <Undo2 className="h-3 w-3 mr-1" />
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

@@ -15,7 +15,7 @@ const Index = () => {
         subtitle="Handpicked lehengas for every occasion"
         viewAllLink="/category/lehengas"
         viewAllText="View All Lehengas"
-        filterFeatured={false}
+        filterFeatured={true}
         filterNew={false}
         limit={4}
         skipProducts={0}
@@ -27,9 +27,9 @@ const Index = () => {
         viewAllLink="/new-arrivals"
         viewAllText="View All New Arrivals"
         filterFeatured={false}
-        filterNew={false}
+        filterNew={true}
         limit={4}
-        skipProducts={4}
+        skipProducts={0}
       />
       <TestimonialSection />
     </Layout>

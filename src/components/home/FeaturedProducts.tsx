@@ -3,6 +3,7 @@ import ProductCard from "@/components/products/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
 interface FeaturedProductsProps {
@@ -31,19 +32,30 @@ const FeaturedProducts = ({
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["products"],
+    queryKey: ["products", "featured", filterFeatured, filterNew],
     queryFn: fetchProducts,
     staleTime: 5 * 60 * 1000,
   });
 
-  const displayProducts =
-    allProducts
-      ?.filter((product) => {
-        if (filterFeatured && !product.isFeatured) return false;
-        if (filterNew && !product.isNew) return false;
-        return true;
-      })
-      ?.slice(skipProducts, skipProducts + limit) || [];
+  const displayProducts = useMemo(() => {
+    if (!allProducts) return [];
+
+    const filtered = allProducts.filter((product) => {
+      if (filterFeatured && !product.isFeatured) {
+        return false;
+      }
+
+      if (filterNew && !product.isNew) {
+        return false;
+      }
+
+      return true;
+    });
+
+    const result = filtered.slice(skipProducts, skipProducts + limit);
+
+    return result;
+  }, [allProducts, filterFeatured, filterNew, skipProducts, limit]);
 
   if (isLoading) {
     return (
@@ -65,7 +77,7 @@ const FeaturedProducts = ({
             {Array.from({ length: limit }).map((_, i) => (
               <div key={i} className="w-full">
                 <Skeleton className="aspect-[3/4] w-full mb-3" />
-                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-3/4 mb-2" />
                 <Skeleton className="h-5 w-1/2" />
               </div>
             ))}
@@ -107,7 +119,7 @@ const FeaturedProducts = ({
             <p>No products found matching the criteria.</p>
             <Link
               to={viewAllLink}
-              className="text-ethnic-purple hover:text-ethnic-purple/80 transition-colors mt-2 inline-block"
+              className="text-ethnic-purple hover:text-ethnic-purple/80 transition-colors underline"
             >
               Browse all products
             </Link>
