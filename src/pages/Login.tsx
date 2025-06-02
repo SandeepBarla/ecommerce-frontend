@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
-import { GoogleLogin } from "@react-oauth/google";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
@@ -59,6 +59,20 @@ const Login = () => {
         setIsLoading(false);
       }
     } catch {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (
+    credentialResponse: CredentialResponse
+  ) => {
+    if (!credentialResponse.credential) return;
+    setIsLoading(true);
+    try {
+      const response = await loginWithGoogle(credentialResponse.credential);
+      loginWithGoogleContext(response);
+      navigate("/");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -151,32 +165,30 @@ const Login = () => {
                 </Button>
               </form>
 
-              {mode === "login" && (
-                <div className="mt-4 flex flex-col items-center">
-                  <span className="text-muted-foreground mb-2">or</span>
+              {/* Google Authentication Section */}
+              <div className="mt-4 flex flex-col items-center">
+                <div className="relative w-full">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      OR CONTINUE WITH
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 w-full">
                   <GoogleLogin
-                    onSuccess={async (credentialResponse) => {
-                      if (!credentialResponse.credential) return;
-                      setIsLoading(true);
-                      try {
-                        const response = await loginWithGoogle(
-                          credentialResponse.credential
-                        );
-                        loginWithGoogleContext(response);
-                        navigate("/");
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }}
+                    onSuccess={handleGoogleSuccess}
                     onError={() => {}}
                     width="100%"
                     theme="filled_blue"
-                    text="continue_with"
+                    text={mode === "login" ? "continue_with" : "signup_with"}
                     shape="pill"
                     logo_alignment="center"
                   />
                 </div>
-              )}
+              </div>
 
               <div className="mt-6 text-center text-sm">
                 <Separator className="my-4" />
