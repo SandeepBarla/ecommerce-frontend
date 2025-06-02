@@ -3,6 +3,7 @@ import Layout from "@/components/layout/Layout";
 import ProductCard from "@/components/products/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import ShareButton from "@/components/ui/ShareButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/hooks/useCart";
@@ -15,7 +16,7 @@ import {
   isOnSale,
 } from "@/lib/productUtils";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Heart, Share2, Volume2, VolumeX } from "lucide-react";
+import { ChevronRight, Heart, Volume2, VolumeX } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -482,10 +483,14 @@ const ProductDetails = () => {
               </Button>
             </div>
             {/* Share button */}
-            <button className="flex items-center mt-4 text-muted-foreground hover:text-ethnic-purple transition-colors text-sm">
-              <Share2 size={16} className="mr-1.5" />
-              Share this product
-            </button>
+            <ShareButton
+              url={window.location.href}
+              title={product.name}
+              description={`${formatPrice(
+                currentPrice
+              )} - ${product.description?.slice(0, 100)}...`}
+              className="mt-4"
+            />
           </div>
         </div>
         {/* Similar products */}

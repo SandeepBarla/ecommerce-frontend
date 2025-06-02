@@ -109,7 +109,7 @@ const Hero = () => {
             <p className="text-lg md:text-xl lg:text-2xl opacity-90">
               Discover Ethnic Elegance
             </p>
-            <Link to="/category/lehengas">
+            <Link to="/products">
               <Button className="bg-ethnic-gold text-black hover:bg-ethnic-gold/90 text-lg px-8 py-6 rounded-full font-medium shadow-2xl hover:shadow-ethnic-gold/25 hover:scale-105 transition-all duration-300 mt-6">
                 Explore Collection
               </Button>
@@ -227,7 +227,7 @@ const Hero = () => {
                           View Details
                         </Button>
                       </Link>
-                      <Link to="/category/lehengas" className="flex-1">
+                      <Link to="/products" className="flex-1">
                         <Button className="w-full bg-white text-black hover:bg-white/90 text-sm px-4 py-3 rounded-lg font-medium shadow-lg hover:shadow-white/25 hover:scale-105 transition-all duration-300">
                           Explore Collection
                         </Button>
@@ -300,7 +300,7 @@ const Hero = () => {
                           View Details
                         </Button>
                       </Link>
-                      <Link to="/category/lehengas">
+                      <Link to="/products">
                         <Button className="bg-ethnic-gold text-black hover:bg-ethnic-gold/90 text-lg px-8 py-6 rounded-full font-semibold shadow-2xl hover:shadow-ethnic-gold/25 hover:scale-105 transition-all duration-300">
                           Explore Collection
                         </Button>

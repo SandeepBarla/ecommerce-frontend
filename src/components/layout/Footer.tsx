@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Facebook, Instagram, Twitter } from "lucide-react";
+import { Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -33,163 +33,134 @@ const Footer = () => {
 
       {/* Main Footer Content */}
       <div className="ethnic-container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand Column */}
-          <div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Brand Column - Full width on mobile, 1 column on desktop */}
+          <div className="lg:col-span-1">
             <h3 className="font-serif text-xl mb-4">Sakhya</h3>
             <p className="text-muted-foreground mb-4">
               Celebrating India's rich textile heritage with contemporary
               designs. Our curated collection brings timeless elegance to the
               modern woman.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex items-center space-x-2">
               <a
-                href="https://instagram.com"
-                className="hover:text-ethnic-purple transition-colors"
-                aria-label="Instagram"
+                href="https://instagram.com/sakhya_official"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 hover:text-ethnic-purple transition-colors group"
+                aria-label="Follow us on Instagram"
               >
                 <Instagram size={20} />
-              </a>
-              <a
-                href="https://facebook.com"
-                className="hover:text-ethnic-purple transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook size={20} />
-              </a>
-              <a
-                href="https://twitter.com"
-                className="hover:text-ethnic-purple transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter size={20} />
+                <span className="text-sm font-medium group-hover:text-ethnic-purple">
+                  @sakhya_official
+                </span>
               </a>
             </div>
           </div>
 
-          {/* Shop Column - Removed unnecessary categories */}
-          <div>
-            <h4 className="font-medium mb-4">Shop</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  to="/category/lehengas"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Lehengas
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/new-arrivals"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  New Arrivals
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/offers"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Offers
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Shop and Account Columns - Side by side on mobile and desktop */}
+          <div className="grid grid-cols-2 lg:col-span-2 gap-8">
+            {/* Shop Column */}
+            <div>
+              <h4 className="font-medium mb-4">Shop</h4>
+              <ul className="space-y-2">
+                <li>
+                  <Link
+                    to="/products"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    Our Collection
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/category/lehengas"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    Lehengas
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/category/sarees"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    Sarees
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/new-arrivals"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    New Arrivals
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/offers"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    Offers
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Account Column */}
-          <div>
-            <h4 className="font-medium mb-4">Account</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  to="/login"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/register"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Register
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/account"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  My Account
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/wishlist"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Wishlist
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/orders"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Order History
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Help Column */}
-          <div>
-            <h4 className="font-medium mb-4">Help</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  to="/contact"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/shipping"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Shipping & Returns
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/faq"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  FAQs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/privacy-policy"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/terms"
-                  className="text-muted-foreground hover:text-ethnic-purple transition-colors"
-                >
-                  Terms & Conditions
-                </Link>
-              </li>
-            </ul>
+            {/* Account Column */}
+            <div>
+              <h4 className="font-medium mb-4">Account</h4>
+              <ul className="space-y-2">
+                <li>
+                  <Link
+                    to="/login"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    Login
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/account"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    My Account
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/account/orders"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    Order History
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/account/addresses"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    My Addresses
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/wishlist"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    Wishlist
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/cart"
+                    className="text-muted-foreground hover:text-ethnic-purple transition-colors"
+                  >
+                    Shopping Cart
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -197,30 +168,8 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-gray-200">
         <div className="ethnic-container py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
+          <div className="flex justify-center items-center text-sm text-muted-foreground">
             <p>© {currentYear} Sakhya. All rights reserved.</p>
-            <div className="flex space-x-4 mt-4 md:mt-0">
-              <img
-                src="https://res.cloudinary.com/dj2eq0oys/image/upload/v1621763049/payment-methods/visa_u8l4yu.svg"
-                alt="Visa"
-                className="h-6"
-              />
-              <img
-                src="https://res.cloudinary.com/dj2eq0oys/image/upload/v1621763049/payment-methods/mastercard_uwady1.svg"
-                alt="Mastercard"
-                className="h-6"
-              />
-              <img
-                src="https://res.cloudinary.com/dj2eq0oys/image/upload/v1621763049/payment-methods/paypal_bxqipp.svg"
-                alt="PayPal"
-                className="h-6"
-              />
-              <img
-                src="https://res.cloudinary.com/dj2eq0oys/image/upload/v1621763049/payment-methods/american-express_itelpj.svg"
-                alt="American Express"
-                className="h-6"
-              />
-            </div>
           </div>
         </div>
       </div>

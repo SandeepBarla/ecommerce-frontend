@@ -10,9 +10,9 @@ const Index = () => {
       <Hero />
       <FeaturedProducts
         title="Our Collection"
-        subtitle="Handpicked lehengas for every occasion"
-        viewAllLink="/category/lehengas"
-        viewAllText="View All Lehengas"
+        subtitle="Handpicked ethnic wear for every occasion"
+        viewAllLink="/products"
+        viewAllText="View Our Collection"
         filterFeatured={true}
         filterNew={false}
         limit={4}

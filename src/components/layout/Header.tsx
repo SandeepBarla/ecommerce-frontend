@@ -1,9 +1,11 @@
+import { fetchProducts } from "@/api/products";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/hooks/useCart";
+import { useQuery } from "@tanstack/react-query";
 import {
   Heart,
   Home,
@@ -16,7 +18,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 const Header = () => {
@@ -24,6 +26,28 @@ const Header = () => {
   const { cartCount, cartItems } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch products for search
+  const { data: allProducts = [] } = useQuery({
+    queryKey: ["products", "search"],
+    queryFn: fetchProducts,
+    enabled: searchOpen, // Only fetch when search is open
+  });
+
+  // Filter products based on search query
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim() || !allProducts.length) return [];
+
+    const query = searchQuery.toLowerCase().trim();
+    return allProducts
+      .filter(
+        (product) =>
+          product.name.toLowerCase().includes(query) ||
+          product.categoryName?.toLowerCase().includes(query)
+      )
+      .slice(0, 6); // Limit to 6 results
+  }, [searchQuery, allProducts]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -31,12 +55,20 @@ const Header = () => {
 
   const toggleSearch = () => {
     setSearchOpen(!searchOpen);
+    if (!searchOpen) {
+      setSearchQuery(""); // Clear search when closing
+    }
   };
 
-  // Simplified categories, focusing only on lehengas
+  const handleSearchSelect = () => {
+    setSearchOpen(false);
+    setSearchQuery("");
+  };
+
+  // Updated categories with better naming
   const categoryLinks = [
     {
-      name: "Collection",
+      name: "Our Collection",
       path: "/products",
       icon: <Package size={18} />,
     },
@@ -162,13 +194,15 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Inline search bar instead of full-screen overlay */}
+        {/* Enhanced search bar with results */}
         {searchOpen && (
-          <div className="mt-3 pb-3 w-full">
+          <div className="mt-3 pb-3 w-full relative">
             <div className="relative max-w-3xl mx-auto">
               <Input
                 type="text"
                 placeholder="Search for products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-10 border border-ethnic-purple/30 focus:border-ethnic-purple rounded-full"
                 autoFocus
               />
@@ -182,12 +216,84 @@ const Header = () => {
               >
                 <X size={18} />
               </button>
+
+              {/* Search Results Dropdown */}
+              {searchQuery.trim() && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                  {searchResults.length > 0 ? (
+                    <>
+                      <div className="p-3 border-b border-gray-100">
+                        <p className="text-sm text-gray-600">
+                          Found {searchResults.length} result
+                          {searchResults.length !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      {searchResults.map((product) => (
+                        <Link
+                          key={product.id}
+                          to={`/product/${product.id}`}
+                          onClick={() => handleSearchSelect()}
+                          className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-50 last:border-b-0 transition-colors"
+                        >
+                          <div className="w-12 h-12 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 mr-3">
+                            <img
+                              src={
+                                product.primaryImageUrl || "/placeholder.png"
+                              }
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = "/placeholder.png";
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm text-gray-900 truncate">
+                              {product.name}
+                            </h4>
+                            <p className="text-xs text-gray-500">
+                              {product.categoryName}
+                            </p>
+                            <p className="text-sm font-semibold text-ethnic-purple">
+                              ₹{product.originalPrice.toFixed(0)}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                      <div className="p-3 border-t border-gray-100">
+                        <Link
+                          to={`/products?search=${encodeURIComponent(
+                            searchQuery
+                          )}`}
+                          onClick={() => handleSearchSelect()}
+                          className="text-sm text-ethnic-purple hover:text-ethnic-purple/80 font-medium"
+                        >
+                          View all results for "{searchQuery}"
+                        </Link>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-6 text-center">
+                      <p className="text-gray-500 mb-2">
+                        No products found for "{searchQuery}"
+                      </p>
+                      <Link
+                        to="/products"
+                        onClick={() => handleSearchSelect()}
+                        className="text-ethnic-purple hover:text-ethnic-purple/80 text-sm font-medium"
+                      >
+                        Browse all products
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Mobile Menu - Beautiful redesign */}
+      {/* Mobile Menu - Updated with new collection name */}
       <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
         <SheetContent
           side="left"
