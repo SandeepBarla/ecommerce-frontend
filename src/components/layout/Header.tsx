@@ -36,8 +36,18 @@ const Header = () => {
   // Simplified categories, focusing only on lehengas
   const categoryLinks = [
     {
+      name: "Collection",
+      path: "/products",
+      icon: <Package size={18} />,
+    },
+    {
       name: "Lehengas",
       path: "/category/lehengas",
+      icon: <Package size={18} />,
+    },
+    {
+      name: "Sarees",
+      path: "/category/sarees",
       icon: <Package size={18} />,
     },
     {

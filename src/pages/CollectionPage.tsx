@@ -38,9 +38,16 @@ const CollectionPage = () => {
         return allProducts.filter((product) => product.isNew);
       case "offers":
         return allProducts.filter((product) => isOnSale(product));
+      case "lehengas":
+        return allProducts.filter((product) =>
+          product.categoryName?.toLowerCase().includes("lehenga")
+        );
+      case "sarees":
+        return allProducts.filter((product) =>
+          product.categoryName?.toLowerCase().includes("saree")
+        );
       default:
-        // For category pages, we would filter by category here
-        // For now, return all products
+        // For other categories or "all" case
         return allProducts;
     }
   }, [allProducts, pageType]);
@@ -69,6 +76,32 @@ const CollectionPage = () => {
           emptyTitle: "No Active Offers",
           emptyDescription:
             "All our products are at regular prices right now. Follow us for updates on upcoming sales!",
+          emptyAction: "Browse All Products",
+        };
+      case "lehengas":
+        return {
+          title: "Lehengas",
+          description:
+            "Exquisite lehengas for weddings, festivals, and special occasions",
+          emptyIcon: (
+            <ShoppingBag className="w-16 h-16 text-ethnic-purple/60 mb-4" />
+          ),
+          emptyTitle: "No Lehengas Available",
+          emptyDescription:
+            "We're currently updating our lehenga collection. Check back soon!",
+          emptyAction: "Browse All Products",
+        };
+      case "sarees":
+        return {
+          title: "Sarees",
+          description:
+            "Elegant sarees crafted with traditional artistry and modern elegance",
+          emptyIcon: (
+            <ShoppingBag className="w-16 h-16 text-ethnic-purple/60 mb-4" />
+          ),
+          emptyTitle: "No Sarees Available",
+          emptyDescription:
+            "We're currently building our saree collection. Exciting designs coming soon!",
           emptyAction: "Browse All Products",
         };
       default:
