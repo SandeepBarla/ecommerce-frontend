@@ -290,6 +290,15 @@
     transform: scale(0.95);
   }
 
+  /* Auto-scroll pause indicator */
+  .auto-scroll-indicator {
+    @apply opacity-0 transition-opacity duration-300;
+  }
+
+  .auto-scroll-indicator.visible {
+    @apply opacity-100;
+  }
+
   /* Hero Carousel Animations */
   @keyframes fade-in-up {
     from {
