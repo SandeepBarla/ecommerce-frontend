@@ -110,7 +110,10 @@ const AccountOrders = () => {
             date: order.orderDate,
             total: order.totalAmount,
             status: order.orderStatus,
-            paymentStatus: order.paymentStatus || "Paid",
+            paymentStatus:
+              order.paymentStatus === "Pending"
+                ? "Pending Review"
+                : order.paymentStatus || "Paid",
             paymentRemarks: order.paymentRemarks,
             items: orderItems,
             address: `Address ID: ${order.addressId || "Not specified"}`,
@@ -169,6 +172,7 @@ const AccountOrders = () => {
       case "rejected":
         return "bg-red-100 text-red-800";
       case "pending":
+      case "pending review":
         return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -179,22 +183,27 @@ const AccountOrders = () => {
     if (type === "payment") {
       switch (status?.toLowerCase()) {
         case "approved":
-          return <CheckCircle className="h-3 w-3" />;
+          return <CheckCircle className="h-4 w-4" />;
         case "rejected":
-          return <XCircle className="h-3 w-3" />;
+          return <XCircle className="h-4 w-4" />;
+        case "pending":
+        case "pending review":
+          return <Clock className="h-4 w-4" />;
         default:
-          return <AlertTriangle className="h-3 w-3" />;
+          return <AlertTriangle className="h-4 w-4" />;
       }
     } else {
       switch (status?.toLowerCase()) {
         case "delivered":
-          return <CheckCircle className="h-3 w-3" />;
+          return <CheckCircle className="h-4 w-4" />;
         case "shipped":
-          return <Truck className="h-3 w-3" />;
+          return <Truck className="h-4 w-4" />;
         case "cancelled":
-          return <XCircle className="h-3 w-3" />;
+          return <XCircle className="h-4 w-4" />;
+        case "processing":
+          return <Clock className="h-4 w-4" />;
         default:
-          return <Clock className="h-3 w-3" />;
+          return <Clock className="h-4 w-4" />;
       }
     }
   };
@@ -369,7 +378,7 @@ const AccountOrders = () => {
                               order.status
                             )} flex items-center gap-1`}
                           >
-                            {getStatusIcon(order.status, "order")}
+                            Order: {getStatusIcon(order.status, "order")}{" "}
                             {order.status}
                           </Badge>
                           <Badge
@@ -377,7 +386,8 @@ const AccountOrders = () => {
                               order.paymentStatus
                             )} flex items-center gap-1`}
                           >
-                            {getStatusIcon(order.paymentStatus, "payment")}
+                            Payment:{" "}
+                            {getStatusIcon(order.paymentStatus, "payment")}{" "}
                             {order.paymentStatus}
                           </Badge>
                         </div>

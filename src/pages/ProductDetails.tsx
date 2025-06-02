@@ -169,7 +169,7 @@ const ProductDetails = () => {
         name: product.name,
         originalPrice: product.originalPrice,
         discountedPrice: product.discountedPrice,
-        discountPercentage: product.discountPercentage,
+        discountPercentage: discountPercentage || 0,
         isFeatured: product.isFeatured,
         isNew: product.isNew,
         categoryName: product.categoryName,

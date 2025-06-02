@@ -2,13 +2,11 @@ import FeaturedProducts from "../components/home/FeaturedProducts";
 import Hero from "../components/home/Hero";
 import PromotionalBanner from "../components/home/PromotionalBanner";
 import TestimonialSection from "../components/home/TestimonialSection";
-import USPSection from "../components/home/USPSection";
 
 const Home = () => {
   return (
     <>
       <Hero />
-      <USPSection />
       <FeaturedProducts
         title="Our Collection"
         subtitle="Handpicked lehengas for every occasion"

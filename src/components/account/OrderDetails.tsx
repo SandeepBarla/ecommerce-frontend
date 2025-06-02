@@ -104,8 +104,7 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
                 order.status
               )} flex items-center gap-1`}
             >
-              {getStatusIcon(order.status, "order")}
-              Order: {order.status}
+              Order: {getStatusIcon(order.status, "order")} {order.status}
             </Badge>
             {order.paymentStatus && (
               <Badge
@@ -113,8 +112,8 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
                   order.paymentStatus
                 )} flex items-center gap-1`}
               >
-                {getStatusIcon(order.paymentStatus, "payment")}
-                Payment: {order.paymentStatus}
+                Payment: {getStatusIcon(order.paymentStatus, "payment")}{" "}
+                {order.paymentStatus}
               </Badge>
             )}
           </div>

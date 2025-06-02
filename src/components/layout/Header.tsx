@@ -50,12 +50,6 @@ const Header = () => {
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50 w-full">
-      {/* Top promotional banner */}
-      <div className="bg-ethnic-purple text-white text-center py-2 text-xs px-2 sm:text-sm">
-        Free shipping on orders over ₹1,999 • Use code WELCOME20 for 20% off
-        your first purchase
-      </div>
-
       {/* Main header */}
       <div className="max-w-7xl mx-auto px-3 py-2 sm:px-4 sm:py-4">
         <div className="flex items-center justify-between">

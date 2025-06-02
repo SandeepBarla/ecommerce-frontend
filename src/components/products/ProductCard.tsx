@@ -2,7 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPrimaryImageUrl, isNewProduct, isOnSale } from "@/lib/productUtils";
+import {
+  calculateDiscountPercentage,
+  getPrimaryImageUrl,
+  isNewProduct,
+  isOnSale,
+} from "@/lib/productUtils";
 import { formatPriceWithDiscount } from "@/lib/utils";
 import { ProductListResponse } from "@/types/product/ProductListResponse";
 import { Heart } from "lucide-react";
@@ -23,7 +28,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const isInFavorites = user?.favoriteProductIds.includes(product.id) || false;
   const primaryImageUrl = getPrimaryImageUrl(product);
   const showNewBadge = isNewProduct(product);
-  const showDiscountBadge = isOnSale(product) && product.discountPercentage;
+  const discountPercentage = calculateDiscountPercentage(product);
+  const showDiscountBadge = isOnSale(product) && discountPercentage;
   const { formattedPrice, hasDiscount, formattedOriginalPrice } =
     formatPriceWithDiscount(product.originalPrice, product.discountedPrice);
 
@@ -82,7 +88,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             )}
             {showDiscountBadge && (
               <Badge className="bg-ethnic-gold text-foreground text-xs py-0 px-1.5">
-                {product.discountPercentage}% Off
+                {discountPercentage}% Off
               </Badge>
             )}
           </div>
