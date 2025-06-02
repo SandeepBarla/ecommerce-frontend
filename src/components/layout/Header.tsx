@@ -93,30 +93,30 @@ const Header = () => {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50 w-full border-b border-gray-100">
       {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 sm:py-4">
-        <div className="flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 py-2 sm:px-6 sm:py-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Mobile menu button */}
           <button
-            className="lg:hidden p-2 focus:outline-none hover:bg-ethnic-purple/10 rounded-lg transition-colors duration-200"
+            className="lg:hidden p-1.5 sm:p-2 focus:outline-none hover:bg-ethnic-purple/10 rounded-lg transition-colors duration-200 flex-shrink-0"
             onClick={toggleMenu}
             aria-label="Toggle menu"
           >
             {isMenuOpen ? (
-              <X size={20} className="text-gray-700" />
+              <X size={18} className="text-gray-700" />
             ) : (
-              <Menu size={20} className="text-gray-700" />
+              <Menu size={18} className="text-gray-700" />
             )}
           </button>
 
-          {/* Logo - Centered on mobile, left-aligned on desktop */}
-          <div className="flex-1 lg:flex-initial flex justify-center lg:justify-start">
+          {/* Logo - Optimized for mobile */}
+          <div className="flex-1 flex justify-center lg:justify-start min-w-0">
             <Link to="/" className="inline-block">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="relative flex-shrink-0">
                   <img
                     src="/logo.jpg"
                     alt="Sakhya Logo"
-                    className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain rounded-full border-2 border-ethnic-purple/20 bg-gradient-to-br from-white via-purple-50/30 to-purple-100/20 p-1 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
+                    className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 object-contain rounded-full border-2 border-ethnic-purple/20 bg-gradient-to-br from-white via-purple-50/30 to-purple-100/20 p-1 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
                     onError={(e) => {
                       // Fallback if logo fails to load
                       e.currentTarget.style.display = "none";
@@ -125,7 +125,7 @@ const Header = () => {
                   {/* Elegant accent ring */}
                   <div className="absolute inset-0 rounded-full border border-ethnic-gold/30 animate-pulse"></div>
                 </div>
-                <h1 className="font-serif text-lg sm:text-xl md:text-2xl lg:text-3xl text-ethnic-purple font-bold tracking-wide hover:text-ethnic-purple/80 transition-colors duration-300">
+                <h1 className="font-serif text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-ethnic-purple font-bold tracking-wide hover:text-ethnic-purple/80 transition-colors duration-300 truncate">
                   Sakhya
                 </h1>
               </div>
@@ -151,24 +151,24 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Icons - Properly spaced and aligned */}
-          <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* Icons - Compact on mobile */}
+          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 flex-shrink-0">
             <button
               onClick={toggleSearch}
-              className="p-2 hover:text-ethnic-purple hover:bg-ethnic-purple/10 rounded-lg transition-all duration-200"
+              className="p-1.5 sm:p-2 hover:text-ethnic-purple hover:bg-ethnic-purple/10 rounded-lg transition-all duration-200"
               aria-label="Search"
             >
-              <Search size={18} />
+              <Search size={16} className="sm:w-[18px] sm:h-[18px]" />
             </button>
 
             <Link
               to="/wishlist"
-              className="p-2 hover:text-ethnic-purple hover:bg-ethnic-purple/10 rounded-lg transition-all duration-200 relative"
+              className="p-1.5 sm:p-2 hover:text-ethnic-purple hover:bg-ethnic-purple/10 rounded-lg transition-all duration-200 relative"
               aria-label="Wishlist"
             >
-              <Heart size={18} />
+              <Heart size={16} className="sm:w-[18px] sm:h-[18px]" />
               {(user?.favoriteProductIds?.length || 0) > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-ethnic-gold text-foreground text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                <Badge className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-ethnic-gold text-foreground text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full text-[10px] sm:text-xs">
                   {user?.favoriteProductIds?.length}
                 </Badge>
               )}
@@ -176,12 +176,12 @@ const Header = () => {
 
             <Link
               to="/cart"
-              className="p-2 hover:text-ethnic-purple hover:bg-ethnic-purple/10 rounded-lg transition-all duration-200 relative"
+              className="p-1.5 sm:p-2 hover:text-ethnic-purple hover:bg-ethnic-purple/10 rounded-lg transition-all duration-200 relative"
               aria-label="Cart"
             >
-              <ShoppingCart size={18} />
+              <ShoppingCart size={16} className="sm:w-[18px] sm:h-[18px]" />
               {cartItems.length > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-ethnic-gold text-foreground text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                <Badge className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-ethnic-gold text-foreground text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full text-[10px] sm:text-xs">
                   {cartCount}
                 </Badge>
               )}
@@ -190,17 +190,17 @@ const Header = () => {
             {isAuthenticated ? (
               <Link
                 to="/account"
-                className="p-2 hover:text-ethnic-purple hover:bg-ethnic-purple/10 rounded-lg transition-all duration-200"
+                className="p-1.5 sm:p-2 hover:text-ethnic-purple hover:bg-ethnic-purple/10 rounded-lg transition-all duration-200"
                 aria-label="Account"
               >
-                <User size={18} />
+                <User size={16} className="sm:w-[18px] sm:h-[18px]" />
               </Link>
             ) : (
               <Link to="/login">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hover:bg-ethnic-purple/10 hover:text-ethnic-purple text-xs sm:text-sm px-4 py-2 rounded-lg transition-all duration-200"
+                  className="hover:bg-ethnic-purple/10 hover:text-ethnic-purple text-xs px-2 py-1 sm:px-4 sm:py-2 rounded-lg transition-all duration-200"
                 >
                   Login
                 </Button>
