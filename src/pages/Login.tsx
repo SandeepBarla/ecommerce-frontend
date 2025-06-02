@@ -165,33 +165,29 @@ const Login = () => {
                 </Button>
               </form>
 
-              {/* Google Authentication Section */}
-              <div className="mt-4 flex flex-col items-center">
-                <div className="relative w-full">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      OR CONTINUE WITH
-                    </span>
-                  </div>
+              <div className="relative mt-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
                 </div>
-                <div className="mt-4 w-full flex justify-center">
-                  <div className="w-full max-w-sm">
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={() => {}}
-                      useOneTap={false}
-                      width="100%"
-                      theme="filled_blue"
-                      text={mode === "login" ? "continue_with" : "signup_with"}
-                      shape="pill"
-                      logo_alignment="center"
-                      size="large"
-                    />
-                  </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    OR CONTINUE WITH
+                  </span>
                 </div>
+              </div>
+
+              <div className="flex justify-center mt-4">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => {}}
+                  useOneTap={false}
+                  size="large"
+                  width="100%"
+                  theme="filled_blue"
+                  text={mode === "login" ? "continue_with" : "signup_with"}
+                  shape="pill"
+                  logo_alignment="center"
+                />
               </div>
 
               <div className="mt-6 text-center text-sm">
