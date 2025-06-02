@@ -2,13 +2,7 @@ import { fetchProducts } from "@/api/products";
 import ProductCard from "@/components/products/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-  Pause,
-  Play,
-} from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -61,7 +55,6 @@ const FeaturedProducts = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const autoScrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -199,69 +192,37 @@ const FeaturedProducts = ({
     }
   };
 
-  // Toggle auto-scroll
-  const toggleAutoScroll = () => {
-    setIsAutoScrolling((prev) => {
-      if (!prev) {
-        startAutoScroll();
-      } else {
-        stopAutoScroll();
-      }
-      return !prev;
-    });
-  };
-
   // Handle mouse enter/leave for auto-scroll pause
   const handleMouseEnter = () => {
-    if (isAutoScrolling) {
-      stopAutoScroll();
-    }
+    stopAutoScroll();
   };
 
   const handleMouseLeave = () => {
-    if (isAutoScrolling) {
-      startAutoScroll();
-    }
+    startAutoScroll();
   };
 
   // Initialize auto-scroll
   useEffect(() => {
-    if (isAutoScrolling && displayProducts.length > 0) {
+    if (displayProducts.length > 0) {
       startAutoScroll();
     }
 
     return () => {
       stopAutoScroll();
     };
-  }, [
-    isAutoScrolling,
-    displayProducts.length,
-    startAutoScroll,
-    stopAutoScroll,
-  ]);
+  }, [displayProducts.length, startAutoScroll, stopAutoScroll]);
 
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       checkScrollPosition();
-      if (isAutoScrolling) {
-        stopAutoScroll();
-        setTimeout(startAutoScroll, 100);
-      }
+      stopAutoScroll();
+      setTimeout(startAutoScroll, 100);
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [checkScrollPosition, isAutoScrolling, startAutoScroll, stopAutoScroll]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (autoScrollIntervalRef.current) {
-        clearInterval(autoScrollIntervalRef.current);
-      }
-    };
-  }, []);
+  }, [checkScrollPosition, startAutoScroll, stopAutoScroll]);
 
   if (isLoading) {
     return (
@@ -365,28 +326,12 @@ const FeaturedProducts = ({
               </p>
             )}
           </div>
-          <div className="flex items-center gap-4 mt-4 md:mt-0">
-            {showNavigation && (
-              <button
-                onClick={toggleAutoScroll}
-                className="inline-flex items-center gap-2 text-ethnic-purple hover:text-ethnic-purple/80 transition-colors"
-                title={
-                  isAutoScrolling ? "Pause auto-scroll" : "Resume auto-scroll"
-                }
-              >
-                {isAutoScrolling ? <Pause size={16} /> : <Play size={16} />}
-                <span className="text-sm">
-                  {isAutoScrolling ? "Pause" : "Play"}
-                </span>
-              </button>
-            )}
-            <Link
-              to={viewAllLink}
-              className="inline-flex items-center text-ethnic-purple hover:text-ethnic-purple/80 transition-colors"
-            >
-              {viewAllText} <ArrowRight size={18} className="ml-1" />
-            </Link>
-          </div>
+          <Link
+            to={viewAllLink}
+            className="inline-flex items-center mt-4 md:mt-0 text-ethnic-purple hover:text-ethnic-purple/80 transition-colors"
+          >
+            {viewAllText} <ArrowRight size={18} className="ml-1" />
+          </Link>
         </div>
 
         {/* Unified Layout: Auto-scrolling Carousel */}
@@ -395,33 +340,60 @@ const FeaturedProducts = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Navigation Arrows */}
+          {/* Navigation Arrows - Subtle and Beautiful */}
           {showNavigation && (
             <>
+              {/* Desktop Navigation */}
               <button
                 onClick={scrollLeft}
                 disabled={!canScrollLeft}
-                className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 shadow-xl rounded-full p-3 border-2 carousel-nav-button ${
+                className={`hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
                   canScrollLeft
-                    ? "text-ethnic-purple border-ethnic-purple/20 hover:bg-ethnic-purple hover:text-white hover:border-ethnic-purple"
-                    : "text-gray-300 border-gray-200 cursor-not-allowed"
+                    ? "text-ethnic-purple border-ethnic-purple/20 hover:bg-ethnic-purple hover:text-white hover:border-ethnic-purple opacity-0 hover:opacity-100 group-hover:opacity-100"
+                    : "opacity-0 cursor-not-allowed"
                 }`}
                 style={{ transform: "translateX(-50%) translateY(-50%)" }}
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={18} />
               </button>
               <button
                 onClick={scrollRight}
                 disabled={!canScrollRight}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 shadow-xl rounded-full p-3 border-2 carousel-nav-button ${
+                className={`hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
                   canScrollRight
-                    ? "text-ethnic-purple border-ethnic-purple/20 hover:bg-ethnic-purple hover:text-white hover:border-ethnic-purple"
-                    : "text-gray-300 border-gray-200 cursor-not-allowed"
+                    ? "text-ethnic-purple border-ethnic-purple/20 hover:bg-ethnic-purple hover:text-white hover:border-ethnic-purple opacity-0 hover:opacity-100 group-hover:opacity-100"
+                    : "opacity-0 cursor-not-allowed"
                 }`}
                 style={{ transform: "translateX(50%) translateY(-50%)" }}
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={18} />
               </button>
+
+              {/* Mobile Navigation - Subtle bottom indicators */}
+              <div className="md:hidden absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
+                <button
+                  onClick={scrollLeft}
+                  disabled={!canScrollLeft}
+                  className={`bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-md transition-all duration-200 ${
+                    canScrollLeft
+                      ? "text-ethnic-purple hover:bg-ethnic-purple hover:text-white"
+                      : "text-gray-300 cursor-not-allowed"
+                  }`}
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={scrollRight}
+                  disabled={!canScrollRight}
+                  className={`bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-md transition-all duration-200 ${
+                    canScrollRight
+                      ? "text-ethnic-purple hover:bg-ethnic-purple hover:text-white"
+                      : "text-gray-300 cursor-not-allowed"
+                  }`}
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
             </>
           )}
 
@@ -429,7 +401,7 @@ const FeaturedProducts = ({
           <div
             ref={scrollContainerRef}
             onScroll={checkScrollPosition}
-            className="flex gap-6 overflow-hidden product-carousel-scroll pb-4"
+            className="flex gap-6 overflow-hidden product-carousel-scroll pb-4 group"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {displayProducts.map((product) => (
@@ -445,34 +417,23 @@ const FeaturedProducts = ({
             ))}
           </div>
 
-          {/* Scroll Indicator Dots */}
+          {/* Minimal Progress Dots */}
           {showNavigation && (
-            <div className="flex justify-center mt-6">
-              <div className="flex space-x-2">
+            <div className="flex justify-center mt-4">
+              <div className="flex space-x-1.5">
                 {Array.from({
                   length: Math.ceil(displayProducts.length / getItemsPerView()),
                 }).map((_, i) => (
                   <div
                     key={i}
-                    className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                       i === Math.floor(currentIndex / getItemsPerView())
-                        ? "bg-ethnic-purple"
-                        : "bg-ethnic-purple/30"
+                        ? "bg-ethnic-purple scale-125"
+                        : "bg-ethnic-purple/20 hover:bg-ethnic-purple/40"
                     }`}
                   />
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Auto-scroll status indicator */}
-          {showNavigation && (
-            <div className="text-center mt-4">
-              <p className="text-xs text-muted-foreground">
-                {isAutoScrolling
-                  ? "Auto-scrolling • Hover to pause"
-                  : "Auto-scroll paused"}
-              </p>
             </div>
           )}
         </div>
