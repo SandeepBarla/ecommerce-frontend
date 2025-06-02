@@ -177,16 +177,20 @@ const Login = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-4 w-full">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => {}}
-                    width="100%"
-                    theme="filled_blue"
-                    text={mode === "login" ? "continue_with" : "signup_with"}
-                    shape="pill"
-                    logo_alignment="center"
-                  />
+                <div className="mt-4 w-full flex justify-center">
+                  <div className="w-full max-w-sm">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => {}}
+                      useOneTap={false}
+                      width="100%"
+                      theme="filled_blue"
+                      text={mode === "login" ? "continue_with" : "signup_with"}
+                      shape="pill"
+                      logo_alignment="center"
+                      size="large"
+                    />
+                  </div>
                 </div>
               </div>
 
