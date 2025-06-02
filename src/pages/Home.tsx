@@ -14,7 +14,7 @@ const Home = () => {
         viewAllText="View Our Collection"
         filterFeatured={true}
         filterNew={false}
-        limit={4}
+        limit={8}
       />
       <PromotionalBanner />
       <FeaturedProducts
@@ -24,7 +24,7 @@ const Home = () => {
         viewAllText="View All New Arrivals"
         filterFeatured={false}
         filterNew={true}
-        limit={4}
+        limit={8}
       />
       <TestimonialSection />
     </>

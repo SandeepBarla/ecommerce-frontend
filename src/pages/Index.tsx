@@ -15,7 +15,7 @@ const Index = () => {
         viewAllText="View Our Collection"
         filterFeatured={true}
         filterNew={false}
-        limit={4}
+        limit={8}
         skipProducts={0}
       />
       <PromotionalBanner />
@@ -26,7 +26,7 @@ const Index = () => {
         viewAllText="View All New Arrivals"
         filterFeatured={false}
         filterNew={true}
-        limit={4}
+        limit={8}
         skipProducts={0}
       />
       <TestimonialSection />

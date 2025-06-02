@@ -239,6 +239,57 @@
     background: #8b77e5;
   }
 
+  /* Enhanced scrollbar for product carousels */
+  .product-carousel-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(155, 135, 245, 0.3) transparent;
+    scroll-behavior: smooth;
+  }
+
+  .product-carousel-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .product-carousel-scroll::-webkit-scrollbar-track {
+    background: rgba(155, 135, 245, 0.1);
+    border-radius: 3px;
+  }
+
+  .product-carousel-scroll::-webkit-scrollbar-thumb {
+    background: rgba(155, 135, 245, 0.5);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  .product-carousel-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(155, 135, 245, 0.8);
+  }
+
+  /* Smooth scroll snap for mobile carousels */
+  .mobile-product-scroll {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-product-scroll > * {
+    scroll-snap-align: start;
+  }
+
+  /* Navigation button enhancements */
+  .carousel-nav-button {
+    @apply transition-all duration-300 ease-in-out;
+    backdrop-filter: blur(10px);
+  }
+
+  .carousel-nav-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px -5px rgba(155, 135, 245, 0.3);
+  }
+
+  .carousel-nav-button:active {
+    transform: scale(0.95);
+  }
+
   /* Hero Carousel Animations */
   @keyframes fade-in-up {
     from {
