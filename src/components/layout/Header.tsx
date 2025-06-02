@@ -108,8 +108,8 @@ const Header = () => {
             )}
           </button>
 
-          {/* Logo - Optimized for mobile */}
-          <div className="flex-1 flex justify-center lg:justify-start min-w-0">
+          {/* Logo - Perfectly centered across all screen sizes */}
+          <div className="flex-1 flex justify-center min-w-0">
             <Link to="/" className="inline-block">
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="relative flex-shrink-0">

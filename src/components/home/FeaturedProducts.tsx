@@ -98,12 +98,14 @@ const FeaturedProducts = ({
     }
   }, []);
 
-  // Get items per view based on screen size
+  // Get items per view based on screen size - Enhanced responsive breakpoints
   const getItemsPerView = useCallback(() => {
-    return windowSize.width >= 768 ? 4 : 2; // 4 for desktop, 2 for mobile
+    if (windowSize.width >= 1024) return 4; // Desktop: 4 items
+    if (windowSize.width >= 640) return 3; // Tablet: 3 items
+    return 2; // Mobile: 2 items
   }, [windowSize.width]);
 
-  // Calculate card width based on container and gap
+  // Calculate card width based on container and gap - Enhanced for 3-column layout
   const getCardWidth = useCallback(() => {
     if (scrollContainerRef.current) {
       const containerWidth = scrollContainerRef.current.clientWidth;
@@ -111,13 +113,25 @@ const FeaturedProducts = ({
       const itemsPerView = getItemsPerView();
       return (containerWidth + gap) / itemsPerView;
     }
-    return windowSize.width >= 768 ? 280 : 150; // fallback
+    // Enhanced fallback calculations
+    if (windowSize.width >= 1024) return 280; // Desktop
+    if (windowSize.width >= 640) return 220; // Tablet
+    return 150; // Mobile
   }, [getItemsPerView, windowSize.width]);
 
-  // Get responsive card width for CSS
+  // Get responsive card width for CSS - Enhanced responsive calculations
   const getCardWidthStyle = useCallback(() => {
     const itemsPerView = getItemsPerView();
-    const gapOffset = windowSize.width >= 768 ? 18 : 12; // Adjust for gap
+    let gapOffset;
+
+    if (windowSize.width >= 1024) {
+      gapOffset = 18; // Desktop gap adjustment
+    } else if (windowSize.width >= 640) {
+      gapOffset = 16; // Tablet gap adjustment
+    } else {
+      gapOffset = 12; // Mobile gap adjustment
+    }
+
     return `calc(${100 / itemsPerView}% - ${gapOffset}px)`;
   }, [getItemsPerView, windowSize.width]);
 
@@ -241,28 +255,15 @@ const FeaturedProducts = ({
             </Link>
           </div>
 
-          {/* Mobile: Grid layout */}
-          <div className="grid grid-cols-2 gap-2 md:hidden">
-            {Array.from({ length: 2 }).map((_, i) => (
+          {/* Enhanced Responsive Grid layout for skeleton */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {Array.from({ length: getItemsPerView() }).map((_, i) => (
               <div key={i} className="w-full">
                 <Skeleton className="aspect-[3/4] w-full mb-3" />
                 <Skeleton className="h-4 w-3/4 mb-2" />
                 <Skeleton className="h-5 w-1/2" />
               </div>
             ))}
-          </div>
-
-          {/* Desktop: Horizontal scroll layout */}
-          <div className="hidden md:block">
-            <div className="flex gap-6 overflow-hidden">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-64">
-                  <Skeleton className="aspect-[3/4] w-full mb-3" />
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-5 w-1/2" />
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -340,14 +341,14 @@ const FeaturedProducts = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Navigation Arrows - Subtle and Beautiful */}
+          {/* Navigation Arrows - Enhanced responsive visibility */}
           {showNavigation && (
             <>
-              {/* Desktop Navigation */}
+              {/* Desktop Navigation - Show on larger screens */}
               <button
                 onClick={scrollLeft}
                 disabled={!canScrollLeft}
-                className={`hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
+                className={`hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
                   canScrollLeft
                     ? "text-ethnic-purple border-ethnic-purple/20 hover:bg-ethnic-purple hover:text-white hover:border-ethnic-purple opacity-0 hover:opacity-100 group-hover:opacity-100"
                     : "opacity-0 cursor-not-allowed"
@@ -359,7 +360,7 @@ const FeaturedProducts = ({
               <button
                 onClick={scrollRight}
                 disabled={!canScrollRight}
-                className={`hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
+                className={`hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
                   canScrollRight
                     ? "text-ethnic-purple border-ethnic-purple/20 hover:bg-ethnic-purple hover:text-white hover:border-ethnic-purple opacity-0 hover:opacity-100 group-hover:opacity-100"
                     : "opacity-0 cursor-not-allowed"
@@ -369,8 +370,8 @@ const FeaturedProducts = ({
                 <ChevronRight size={18} />
               </button>
 
-              {/* Mobile Navigation - Subtle bottom indicators */}
-              <div className="md:hidden absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
+              {/* Mobile & Tablet Navigation - Show on smaller screens */}
+              <div className="lg:hidden absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
                 <button
                   onClick={scrollLeft}
                   disabled={!canScrollLeft}
