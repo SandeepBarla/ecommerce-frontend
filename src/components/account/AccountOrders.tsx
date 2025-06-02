@@ -13,7 +13,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { getEffectivePrice } from "@/lib/utils";
-import { Eye, ShoppingBag } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Eye,
+  ShoppingBag,
+  Truck,
+  XCircle,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import OrderDetails from "./OrderDetails";
@@ -32,6 +40,7 @@ interface ProcessedOrder {
   total: number;
   status: string;
   paymentStatus: string;
+  paymentRemarks?: string;
   items: OrderItem[];
   address: string;
   trackingNumber?: string;
@@ -102,6 +111,7 @@ const AccountOrders = () => {
             total: order.totalAmount,
             status: order.orderStatus,
             paymentStatus: order.paymentStatus || "Paid",
+            paymentRemarks: order.paymentRemarks,
             items: orderItems,
             address: `Address ID: ${order.addressId || "Not specified"}`,
             trackingNumber:
@@ -153,12 +163,39 @@ const AccountOrders = () => {
   };
 
   const getPaymentStatusClass = (status: string) => {
-    if (status.toLowerCase().includes("paid")) {
-      return "bg-green-100 text-green-800";
-    } else if (status.toLowerCase().includes("pending")) {
-      return "bg-amber-100 text-amber-800";
+    switch (status.toLowerCase()) {
+      case "approved":
+        return "bg-green-100 text-green-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusIcon = (status: string, type: "order" | "payment") => {
+    if (type === "payment") {
+      switch (status?.toLowerCase()) {
+        case "approved":
+          return <CheckCircle className="h-3 w-3" />;
+        case "rejected":
+          return <XCircle className="h-3 w-3" />;
+        default:
+          return <AlertTriangle className="h-3 w-3" />;
+      }
     } else {
-      return "bg-gray-100 text-gray-800";
+      switch (status?.toLowerCase()) {
+        case "delivered":
+          return <CheckCircle className="h-3 w-3" />;
+        case "shipped":
+          return <Truck className="h-3 w-3" />;
+        case "cancelled":
+          return <XCircle className="h-3 w-3" />;
+        default:
+          return <Clock className="h-3 w-3" />;
+      }
     }
   };
 
@@ -177,12 +214,22 @@ const AccountOrders = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="mb-4 flex w-full overflow-x-auto">
-              <TabsTrigger value="all">All Orders</TabsTrigger>
-              <TabsTrigger value="processing">Processing</TabsTrigger>
-              <TabsTrigger value="shipped">Shipped</TabsTrigger>
-              <TabsTrigger value="delivered">Delivered</TabsTrigger>
-              <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+            <TabsList className="mb-4 grid w-full grid-cols-5 lg:flex lg:w-auto lg:overflow-x-auto">
+              <TabsTrigger value="all" className="text-xs sm:text-sm">
+                All Orders
+              </TabsTrigger>
+              <TabsTrigger value="processing" className="text-xs sm:text-sm">
+                Processing
+              </TabsTrigger>
+              <TabsTrigger value="shipped" className="text-xs sm:text-sm">
+                Shipped
+              </TabsTrigger>
+              <TabsTrigger value="delivered" className="text-xs sm:text-sm">
+                Delivered
+              </TabsTrigger>
+              <TabsTrigger value="cancelled" className="text-xs sm:text-sm">
+                Cancelled
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="mt-0">
@@ -258,12 +305,22 @@ const AccountOrders = () => {
             onValueChange={setSelectedTab}
             className="w-full"
           >
-            <TabsList className="mb-4 flex w-full overflow-x-auto">
-              <TabsTrigger value="all">All Orders</TabsTrigger>
-              <TabsTrigger value="processing">Processing</TabsTrigger>
-              <TabsTrigger value="shipped">Shipped</TabsTrigger>
-              <TabsTrigger value="delivered">Delivered</TabsTrigger>
-              <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+            <TabsList className="mb-4 grid w-full grid-cols-5 lg:flex lg:w-auto lg:overflow-x-auto">
+              <TabsTrigger value="all" className="text-xs sm:text-sm">
+                All Orders
+              </TabsTrigger>
+              <TabsTrigger value="processing" className="text-xs sm:text-sm">
+                Processing
+              </TabsTrigger>
+              <TabsTrigger value="shipped" className="text-xs sm:text-sm">
+                Shipped
+              </TabsTrigger>
+              <TabsTrigger value="delivered" className="text-xs sm:text-sm">
+                Delivered
+              </TabsTrigger>
+              <TabsTrigger value="cancelled" className="text-xs sm:text-sm">
+                Cancelled
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value={selectedTab} className="mt-0">
@@ -307,15 +364,21 @@ const AccountOrders = () => {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                          <Badge className={getStatusClass(order.status)}>
-                            Order: {order.status}
+                          <Badge
+                            className={`${getStatusClass(
+                              order.status
+                            )} flex items-center gap-1`}
+                          >
+                            {getStatusIcon(order.status, "order")}
+                            {order.status}
                           </Badge>
                           <Badge
-                            className={getPaymentStatusClass(
+                            className={`${getPaymentStatusClass(
                               order.paymentStatus
-                            )}
+                            )} flex items-center gap-1`}
                           >
-                            Payment: {order.paymentStatus}
+                            {getStatusIcon(order.paymentStatus, "payment")}
+                            {order.paymentStatus}
                           </Badge>
                         </div>
                       </div>
@@ -367,7 +430,7 @@ const AccountOrders = () => {
       </Card>
 
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
           </DialogHeader>

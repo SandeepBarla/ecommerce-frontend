@@ -1,11 +1,12 @@
 import {
   OrderCreateRequest,
   OrderStatusUpdateRequest,
-} from "../types/order/OrderRequest";
-import { OrderResponse } from "../types/order/OrderResponse";
+  PaymentStatusUpdateRequest,
+} from "@/types/order/OrderRequest";
+import { OrderResponse } from "@/types/order/OrderResponse";
 import api from "./api";
 
-// ✅ Place a New Order
+// ✅ Create Order (User-specific)
 export const placeOrder = async (
   userId: number,
   orderData: OrderCreateRequest
@@ -18,7 +19,7 @@ export const placeOrder = async (
   return response.data;
 };
 
-// ✅ Get All Orders for a User
+// ✅ Get User's Orders
 export const getUserOrders = async (
   userId: number
 ): Promise<OrderResponse[]> => {
@@ -27,7 +28,7 @@ export const getUserOrders = async (
   return response.data;
 };
 
-// ✅ Get Order Details by ID
+// ✅ Get Single Order by ID (User-specific)
 export const getOrderById = async (
   userId: number,
   orderId: number
@@ -36,6 +37,12 @@ export const getOrderById = async (
   const response = await api.get<OrderResponse>(
     `/users/${userId}/orders/${orderId}`
   );
+  return response.data;
+};
+
+// ✅ Get All Orders (Admin Only)
+export const getAllOrders = async (): Promise<OrderResponse[]> => {
+  const response = await api.get<OrderResponse[]>("/orders");
   return response.data;
 };
 
@@ -54,17 +61,12 @@ export const updateOrderStatus = async (
   return response.data;
 };
 
-// ✅ Get All Orders (Admin Only)
-export const getAllOrders = async (): Promise<OrderResponse[]> => {
-  const response = await api.get<OrderResponse[]>(`/orders`);
-  return response.data;
-};
-
-// ✅ Get Order Details by ID (Admin Only)
-export const getOrderDetailsById = async (
-  orderId: number
-): Promise<OrderResponse> => {
-  if (!orderId) throw new Error("Order ID is required");
-  const response = await api.get<OrderResponse>(`/orders/${orderId}`);
-  return response.data;
+// ✅ Update Payment Status (Admin Only)
+export const updatePaymentStatus = async (
+  orderId: number,
+  updateData: PaymentStatusUpdateRequest
+): Promise<void> => {
+  if (!orderId)
+    throw new Error("Order ID is required to update payment status");
+  await api.patch(`/orders/${orderId}/payment-status`, updateData);
 };

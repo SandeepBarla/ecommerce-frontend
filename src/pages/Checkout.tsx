@@ -9,7 +9,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice, getEffectivePrice } from "@/lib/utils";
 import { OrderCreateRequest } from "@/types/order/OrderRequest";
-import { ChevronLeft } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  ChevronLeft,
+  Copy,
+  CreditCard,
+  Smartphone,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -60,6 +67,9 @@ const Checkout = () => {
     );
   }
 
+  const totalAmount = cartTotal + (cartTotal >= 1999 ? 0 : 99);
+  const upiId = "sakhya@ybl";
+
   const handlePaymentProofUpload = (url: string) => {
     setPaymentProofUrl(url);
     toast.success("Payment proof uploaded successfully!");
@@ -67,6 +77,11 @@ const Checkout = () => {
 
   const handleUploadError = (error: string) => {
     toast.error(`Upload failed: ${error}`);
+  };
+
+  const copyUpiId = () => {
+    navigator.clipboard.writeText(upiId);
+    toast.success("UPI ID copied to clipboard!");
   };
 
   const handlePlaceOrder = async () => {
@@ -102,7 +117,7 @@ const Checkout = () => {
           productId: item.product.id,
           quantity: item.quantity,
         })),
-        totalAmount: cartTotal + (cartTotal >= 1999 ? 0 : 99), // Include shipping
+        totalAmount,
         addressId: parseInt(address.id), // Send address ID instead of string
         paymentProofUrl, // Cloudinary URL
       };
@@ -136,59 +151,152 @@ const Checkout = () => {
 
   return (
     <Layout>
-      <div className="ethnic-container py-4 md:py-8">
-        <Link
-          to="/cart"
-          className="inline-flex items-center text-sm hover:text-ethnic-purple mb-6"
-        >
-          <ChevronLeft size={16} className="mr-1" /> Back to Cart
-        </Link>
-
-        <h1 className="text-2xl md:text-3xl font-serif mb-6">Checkout</h1>
+      <div className="ethnic-container py-8">
+        <div className="mb-6">
+          <Link
+            to="/cart"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Cart
+          </Link>
+          <h1 className="text-3xl font-serif mt-2">Checkout</h1>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="col-span-1 lg:col-span-2">
-            <div className="space-y-6">
-              {/* Delivery Address Section */}
-              <Card className="p-5">
-                <h2 className="text-lg font-medium mb-4">Delivery Address</h2>
+          {/* Left Column - Address & Payment */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Address Selection */}
+            <Card className="p-6">
+              <h2 className="text-lg font-medium mb-4">Delivery Address</h2>
+              {user?.addresses.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground mb-3">
+                    You haven't added any addresses yet
+                  </p>
+                  <Link to="/account/addresses">
+                    <Button variant="outline">Add New Address</Button>
+                  </Link>
+                </div>
+              ) : (
+                <AddressSelector
+                  addresses={user?.addresses || []}
+                  selectedAddressId={selectedAddress}
+                  onSelect={setSelectedAddress}
+                />
+              )}
+            </Card>
 
-                {user?.addresses.length === 0 ? (
-                  <div className="text-center py-4">
-                    <p className="text-muted-foreground mb-3">
-                      You haven't added any addresses yet
-                    </p>
-                    <Link to="/account/addresses">
-                      <Button variant="outline">Add New Address</Button>
-                    </Link>
+            {/* Payment Section */}
+            <Card className="p-6">
+              <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Payment
+              </h2>
+
+              {/* UPI Payment Instructions */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <Smartphone className="h-6 w-6 text-blue-600" />
                   </div>
-                ) : (
-                  <AddressSelector
-                    addresses={user?.addresses || []}
-                    selectedAddressId={selectedAddress}
-                    onSelect={setSelectedAddress}
-                  />
-                )}
-              </Card>
+                  <div>
+                    <h3 className="font-semibold text-blue-900">
+                      UPI Payment Instructions
+                    </h3>
+                    <p className="text-sm text-blue-700">
+                      Follow these steps to complete your payment
+                    </p>
+                  </div>
+                </div>
 
-              {/* Payment Section */}
-              <Card className="p-5">
-                <h2 className="text-lg font-medium mb-4">Payment</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between bg-white rounded-lg p-4 border">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">
+                        Pay to UPI ID:
+                      </p>
+                      <p className="text-lg font-bold text-blue-600">{upiId}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={copyUpiId}
+                      className="flex items-center gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy
+                    </Button>
+                  </div>
 
-                <div className="bg-muted rounded-md p-4 mb-6">
-                  <p className="font-medium">UPI Payment Instructions:</p>
-                  <ol className="list-decimal pl-5 space-y-2 mt-2 text-sm">
-                    <li>
-                      Pay using your UPI app to:{" "}
-                      <span className="font-medium">sakhya@ybl</span>
-                    </li>
-                    <li>
-                      Enter the exact amount:{" "}
-                      {formatPrice(cartTotal + (cartTotal >= 1999 ? 0 : 99))}
-                    </li>
-                    <li>Take a screenshot of the successful payment</li>
-                    <li>Upload the screenshot below</li>
-                  </ol>
+                  <div className="bg-white rounded-lg p-4 border">
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Amount to Pay:
+                    </p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {formatPrice(totalAmount)}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mt-0.5">
+                        1
+                      </div>
+                      <div>
+                        <p className="font-medium">Open UPI App</p>
+                        <p className="text-gray-600">
+                          Use any UPI app like GPay, PhonePe, Paytm
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mt-0.5">
+                        2
+                      </div>
+                      <div>
+                        <p className="font-medium">Send Money</p>
+                        <p className="text-gray-600">
+                          Enter the exact amount and UPI ID
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mt-0.5">
+                        3
+                      </div>
+                      <div>
+                        <p className="font-medium">Take Screenshot</p>
+                        <p className="text-gray-600">
+                          Capture the success screen
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Proof Upload */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium">Upload Payment Proof</h3>
+                  {paymentProofUrl && (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  )}
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-yellow-800">Important:</p>
+                      <p className="text-yellow-700">
+                        Please upload a clear screenshot of your successful UPI
+                        payment. Our team will review and approve your payment
+                        within 24 hours.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <CloudinaryUpload
@@ -196,73 +304,92 @@ const Checkout = () => {
                   onUploadError={handleUploadError}
                   disabled={isProcessing}
                   maxFileSize={10}
+                  folder="payment-proofs"
+                  supportedTypes={["Image"]}
+                  acceptedFormats="image/*"
                 />
-              </Card>
-            </div>
+              </div>
+            </Card>
           </div>
 
-          <div className="col-span-1">
-            <Card className="p-5 sticky top-4">
-              <h3 className="text-lg font-medium mb-4">Order Summary</h3>
+          {/* Right Column - Order Summary */}
+          <div className="lg:col-span-1">
+            <Card className="p-6 sticky top-4">
+              <h2 className="text-lg font-medium mb-4">Order Summary</h2>
 
-              <div className="max-h-48 overflow-y-auto mb-4">
+              <div className="space-y-4">
                 {cartItems.map((item) => (
                   <div
                     key={item.product.id}
-                    className="flex justify-between items-center py-2 text-sm"
+                    className="flex items-center gap-3"
                   >
-                    <div className="flex items-center">
-                      <span>{item.product.name}</span>
-                      <span className="text-muted-foreground ml-1">
-                        x{item.quantity}
-                      </span>
+                    <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                      <img
+                        src={
+                          item.product.primaryImageUrl ||
+                          "/placeholder-product.jpg"
+                        }
+                        alt={item.product.name}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
-                    <span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {item.product.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <div className="text-sm font-medium">
                       {formatPrice(
                         getEffectivePrice(
                           item.product.originalPrice,
                           item.product.discountedPrice
                         ) * item.quantity
                       )}
-                    </span>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <Separator className="my-3" />
+              <Separator className="my-4" />
 
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal</span>
                   <span>{formatPrice(cartTotal)}</span>
                 </div>
-
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
+                <div className="flex justify-between text-sm">
+                  <span>Shipping</span>
                   <span>{cartTotal >= 1999 ? "Free" : formatPrice(99)}</span>
                 </div>
-
-                <Separator className="my-3" />
-
-                <div className="flex justify-between font-medium text-base">
+                <Separator className="my-2" />
+                <div className="flex justify-between font-medium">
                   <span>Total</span>
-                  <span>
-                    {formatPrice(cartTotal + (cartTotal >= 1999 ? 0 : 99))}
-                  </span>
-                </div>
-
-                <div className="pt-4">
-                  <Button
-                    className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90"
-                    onClick={handlePlaceOrder}
-                    disabled={
-                      !selectedAddress || !paymentProofUrl || isProcessing
-                    }
-                  >
-                    {isProcessing ? "Processing..." : "Place Order"}
-                  </Button>
+                  <span className="text-lg">{formatPrice(totalAmount)}</span>
                 </div>
               </div>
+
+              <Button
+                onClick={handlePlaceOrder}
+                disabled={!selectedAddress || !paymentProofUrl || isProcessing}
+                className="w-full mt-6 bg-ethnic-purple hover:bg-ethnic-purple/90"
+                size="lg"
+              >
+                {isProcessing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Placing Order...
+                  </div>
+                ) : (
+                  "Place Order"
+                )}
+              </Button>
+
+              <p className="text-xs text-muted-foreground text-center mt-3">
+                By placing this order, you agree to our terms and conditions.
+              </p>
             </Card>
           </div>
         </div>

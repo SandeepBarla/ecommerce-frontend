@@ -1,6 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Package, Receipt, Truck } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Package,
+  Receipt,
+  Truck,
+  XCircle,
+} from "lucide-react";
 
 interface OrderDetailsProps {
   order: {
@@ -16,6 +24,7 @@ interface OrderDetailsProps {
     }>;
     status: string;
     paymentStatus?: string;
+    paymentRemarks?: string;
     date: string;
     total: number;
     trackingNumber?: string;
@@ -48,33 +57,68 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
   };
 
   const getPaymentStatusClass = (status: string) => {
-    if (status.toLowerCase().includes("paid")) {
-      return "bg-green-100 text-green-800";
-    } else if (status.toLowerCase().includes("pending")) {
-      return "bg-amber-100 text-amber-800";
+    switch (status.toLowerCase()) {
+      case "approved":
+        return "bg-green-100 text-green-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusIcon = (status: string, type: "order" | "payment") => {
+    if (type === "payment") {
+      switch (status?.toLowerCase()) {
+        case "approved":
+          return <CheckCircle className="h-4 w-4" />;
+        case "rejected":
+          return <XCircle className="h-4 w-4" />;
+        default:
+          return <AlertTriangle className="h-4 w-4" />;
+      }
     } else {
-      return "bg-gray-100 text-gray-800";
+      switch (status?.toLowerCase()) {
+        case "delivered":
+          return <CheckCircle className="h-4 w-4" />;
+        case "shipped":
+          return <Truck className="h-4 w-4" />;
+        case "cancelled":
+          return <XCircle className="h-4 w-4" />;
+        default:
+          return <Clock className="h-4 w-4" />;
+      }
     }
   };
 
   return (
     <div className="space-y-6 pt-2">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-        <div>
-          <div className="flex items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex-1">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <h3 className="text-lg font-medium">{order.id}</h3>
-            <Badge className={getStatusClass(order.status) + " ml-2"}>
+            <Badge
+              className={`${getStatusClass(
+                order.status
+              )} flex items-center gap-1`}
+            >
+              {getStatusIcon(order.status, "order")}
               Order: {order.status}
             </Badge>
             {order.paymentStatus && (
               <Badge
-                className={getPaymentStatusClass(order.paymentStatus) + " ml-2"}
+                className={`${getPaymentStatusClass(
+                  order.paymentStatus
+                )} flex items-center gap-1`}
               >
+                {getStatusIcon(order.paymentStatus, "payment")}
                 Payment: {order.paymentStatus}
               </Badge>
             )}
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground">
             Ordered on{" "}
             {new Date(order.date).toLocaleDateString(undefined, {
               year: "numeric",
@@ -84,6 +128,66 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
           </p>
         </div>
       </div>
+
+      {/* Payment Status Alert */}
+      {order.paymentStatus?.toLowerCase() === "rejected" && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="font-medium text-red-800 mb-2">
+                Payment Rejected
+              </h4>
+              {order.paymentRemarks && (
+                <div className="space-y-1 mb-3">
+                  <p className="text-sm font-medium text-red-700">
+                    Rejection Remarks:
+                  </p>
+                  <p className="text-sm text-red-700 bg-red-100 p-2 rounded border-l-4 border-red-400">
+                    {order.paymentRemarks}
+                  </p>
+                </div>
+              )}
+              <p className="text-red-600 text-xs">
+                Please contact customer support or upload a new payment proof.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {order.paymentStatus?.toLowerCase() === "pending" && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-yellow-800 mb-1">
+                Payment Under Review
+              </h4>
+              <p className="text-yellow-700 text-sm">
+                Your payment proof is being reviewed by our team. We'll update
+                you once verified.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {order.paymentStatus?.toLowerCase() === "approved" && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-green-800 mb-1">
+                Payment Approved
+              </h4>
+              <p className="text-green-700 text-sm">
+                Your payment has been verified and approved.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {order.status.toLowerCase() === "shipped" ||
       order.status.toLowerCase() === "delivered" ? (
@@ -136,6 +240,18 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
               <p className="text-xs text-muted-foreground mt-1">
                 Click image to view full size
               </p>
+              {order.paymentStatus && (
+                <div className="mt-2">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusClass(
+                      order.paymentStatus
+                    )}`}
+                  >
+                    {getStatusIcon(order.paymentStatus, "payment")}
+                    {order.paymentStatus}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -169,23 +285,11 @@ const OrderDetails = ({ order }: OrderDetailsProps) => {
 
       <Separator />
 
-      <div>
-        <h4 className="font-medium mb-3">Payment Summary</h4>
-        <div className="bg-muted p-3 rounded-md space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span>{formatPrice(order.total)}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Shipping</span>
-            <span>{order.total >= 1999 ? "Free" : formatPrice(99)}</span>
-          </div>
-          <Separator className="my-2" />
-          <div className="flex justify-between font-medium">
-            <span>Total</span>
-            <span>{formatPrice(order.total)}</span>
-          </div>
-        </div>
+      <div className="flex justify-between items-center">
+        <span className="font-medium">Total</span>
+        <span className="text-lg font-semibold">
+          {formatPrice(order.total)}
+        </span>
       </div>
     </div>
   );

@@ -13,3 +13,8 @@ export interface OrderCreateRequest {
 export interface OrderStatusUpdateRequest {
   status: string;
 }
+
+export interface PaymentStatusUpdateRequest {
+  status: string; // "Pending", "Approved", "Rejected"
+  remarks?: string; // Optional remarks for rejection
+}
