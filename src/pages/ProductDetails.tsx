@@ -16,7 +16,15 @@ import {
   isOnSale,
 } from "@/lib/productUtils";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Heart, Volume2, VolumeX } from "lucide-react";
+import {
+  ChevronRight,
+  Heart,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,7 +32,14 @@ import { toast } from "sonner";
 const ProductDetails = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { addToCart, isAuthenticated, cartItems } = useCart();
+  const {
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    isAuthenticated,
+    cartItems,
+    isLoading: cartLoading,
+  } = useCart();
   const { user, addFavorite, removeFavorite } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -39,18 +54,20 @@ const ProductDetails = () => {
   });
 
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity] = useState(1);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [cartActionLoading, setCartActionLoading] = useState(false);
 
   const isInFavorites =
     user?.favoriteProductIds.includes(Number(productId)) || false;
 
-  // Check if product is already in cart
-  const isInCart = cartItems.some(
+  // Get current cart item for this product
+  const currentCartItem = cartItems.find(
     (item) => item.product.id === Number(productId)
   );
+  const currentQuantityInCart = currentCartItem?.quantity || 0;
+  const isInCart = currentQuantityInCart > 0;
 
   // ✅ Use utility functions for consistent data processing
   const productImages = product ? getProductImages(product) : [];
@@ -107,6 +124,95 @@ const ProductDetails = () => {
     }
   };
 
+  // Enhanced cart functions with better UX
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please log in to add items to cart");
+      return;
+    }
+
+    if (!product) return;
+
+    setCartActionLoading(true);
+    try {
+      // Convert ProductResponse to ProductListResponse format for cart
+      const productForCart = {
+        id: product.id,
+        name: product.name,
+        originalPrice: product.originalPrice,
+        discountedPrice: product.discountedPrice,
+        discountPercentage: discountPercentage || 0,
+        isFeatured: product.isFeatured,
+        isNew: product.isNew,
+        categoryName: product.categoryName,
+        sizeName: product.sizeName,
+        primaryImageUrl: productImages[0] || "/placeholder.png",
+      };
+
+      addToCart(productForCart, 1);
+
+      // Show success feedback
+      toast.success("Added to cart!", {
+        description: `${product.name} has been added to your cart`,
+        action: {
+          label: "View Cart",
+          onClick: () => navigate("/cart"),
+        },
+      });
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      toast.error("Failed to add item to cart");
+    } finally {
+      setCartActionLoading(false);
+    }
+  };
+
+  const handleUpdateQuantity = async (newQuantity: number) => {
+    if (!isAuthenticated) {
+      toast.error("Please log in to manage cart");
+      return;
+    }
+
+    if (!product) return;
+
+    setCartActionLoading(true);
+    try {
+      if (newQuantity <= 0) {
+        removeFromCart(product.id);
+        toast.info("Removed from cart");
+      } else {
+        updateQuantity(product.id, newQuantity);
+        toast.success("Cart updated");
+      }
+    } catch (error) {
+      console.error("Failed to update cart:", error);
+      toast.error("Failed to update cart");
+    } finally {
+      setCartActionLoading(false);
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!user || !isAuthenticated) {
+      toast.error("Please log in to add items to your wishlist");
+      return;
+    }
+
+    setWishlistLoading(true);
+    try {
+      if (isInFavorites) {
+        await removeFavorite(Number(productId));
+      } else {
+        await addFavorite(Number(productId));
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast.error("Failed to update wishlist");
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -156,55 +262,6 @@ const ProductDetails = () => {
       </Layout>
     );
   }
-
-  const handleAddToCart = async () => {
-    if (!isAuthenticated) {
-      toast.error("Please log in to add items to cart");
-      return;
-    }
-
-    try {
-      // Convert ProductResponse to ProductListResponse format for cart
-      const productForCart = {
-        id: product.id,
-        name: product.name,
-        originalPrice: product.originalPrice,
-        discountedPrice: product.discountedPrice,
-        discountPercentage: discountPercentage || 0,
-        isFeatured: product.isFeatured,
-        isNew: product.isNew,
-        categoryName: product.categoryName,
-        sizeName: product.sizeName,
-        primaryImageUrl: productImages[0] || "/placeholder.png",
-      };
-
-      addToCart(productForCart, quantity);
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-      toast.error("Failed to add item to cart");
-    }
-  };
-
-  const handleWishlistToggle = async () => {
-    if (!user || !isAuthenticated) {
-      toast.error("Please log in to add items to your wishlist");
-      return;
-    }
-
-    setWishlistLoading(true);
-    try {
-      if (isInFavorites) {
-        await removeFavorite(Number(productId));
-      } else {
-        await addFavorite(Number(productId));
-      }
-    } catch (error) {
-      console.error("Error toggling favorite:", error);
-      toast.error("Failed to update wishlist");
-    } finally {
-      setWishlistLoading(false);
-    }
-  };
 
   return (
     <Layout>
@@ -449,21 +506,84 @@ const ProductDetails = () => {
               </p>
             </div>
 
-            {/* Action buttons */}
-            <div className="flex flex-col gap-3 mt-auto">
-              <Button
-                onClick={handleAddToCart}
-                className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90"
-                size="lg"
-              >
-                {isInCart ? "Already in Cart" : "Add to Cart"}
-              </Button>
+            {/* Enhanced Cart Controls */}
+            <div className="flex flex-col gap-4 mt-auto">
+              {isInCart ? (
+                /* Quantity Controls when item is in cart */
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-ethnic-purple/5 rounded-lg border border-ethnic-purple/20">
+                    <div className="flex items-center space-x-3">
+                      <ShoppingCart size={20} className="text-ethnic-purple" />
+                      <span className="font-medium text-ethnic-purple">
+                        In Cart
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0 border-ethnic-purple text-ethnic-purple hover:bg-ethnic-purple hover:text-white"
+                        onClick={() =>
+                          handleUpdateQuantity(currentQuantityInCart - 1)
+                        }
+                        disabled={cartActionLoading || cartLoading}
+                      >
+                        <Minus size={14} />
+                      </Button>
+                      <span className="font-semibold text-ethnic-purple min-w-[2rem] text-center">
+                        {currentQuantityInCart}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0 border-ethnic-purple text-ethnic-purple hover:bg-ethnic-purple hover:text-white"
+                        onClick={() =>
+                          handleUpdateQuantity(currentQuantityInCart + 1)
+                        }
+                        disabled={cartActionLoading || cartLoading}
+                      >
+                        <Plus size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => navigate("/cart")}
+                    className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90"
+                    size="lg"
+                  >
+                    <ShoppingCart size={18} className="mr-2" />
+                    View Cart
+                  </Button>
+                </div>
+              ) : (
+                /* Add to Cart button when item is not in cart */
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={cartActionLoading || cartLoading}
+                  className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90 transition-all duration-200"
+                  size="lg"
+                >
+                  {cartActionLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Adding to Cart...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <ShoppingCart size={18} />
+                      <span>Add to Cart</span>
+                    </div>
+                  )}
+                </Button>
+              )}
+
+              {/* Wishlist Button */}
               <Button
                 onClick={handleWishlistToggle}
                 disabled={wishlistLoading}
                 variant="outline"
                 size="lg"
-                className={`w-full border-ethnic-purple ${
+                className={`w-full border-ethnic-purple transition-all duration-200 ${
                   isInFavorites
                     ? "bg-ethnic-purple/10 text-ethnic-purple"
                     : "text-ethnic-purple hover:bg-ethnic-purple/10"
@@ -471,8 +591,8 @@ const ProductDetails = () => {
               >
                 <Heart
                   size={18}
-                  className={`mr-2 ${
-                    isInFavorites ? "fill-ethnic-purple" : ""
+                  className={`mr-2 transition-all duration-200 ${
+                    isInFavorites ? "fill-ethnic-purple scale-110" : ""
                   }`}
                 />
                 {wishlistLoading
@@ -482,6 +602,7 @@ const ProductDetails = () => {
                   : "Add to Wishlist"}
               </Button>
             </div>
+
             {/* Share button */}
             <ShareButton
               url={window.location.href}

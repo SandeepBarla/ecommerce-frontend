@@ -111,9 +111,20 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-1 lg:flex-initial text-center lg:text-left">
             <Link to="/" className="inline-block">
-              <h1 className="font-serif text-xl sm:text-2xl md:text-3xl text-ethnic-purple">
-                Sakhya
-              </h1>
+              <div className="flex items-center justify-center lg:justify-start space-x-2 md:space-x-3">
+                <img
+                  src="/logo.jpg"
+                  alt="Sakhya Logo"
+                  className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-contain drop-shadow-sm rounded-sm"
+                  onError={(e) => {
+                    // Fallback if logo fails to load
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+                <h1 className="font-serif text-xl sm:text-2xl md:text-3xl text-ethnic-purple font-bold tracking-wide">
+                  Sakhya
+                </h1>
+              </div>
             </Link>
           </div>
 

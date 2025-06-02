@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/hooks/useCart";
 import {
   calculateDiscountPercentage,
   getPrimaryImageUrl,
@@ -10,7 +11,7 @@ import {
 } from "@/lib/productUtils";
 import { formatPriceWithDiscount } from "@/lib/utils";
 import { ProductListResponse } from "@/types/product/ProductListResponse";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import LoginDialog from "../LoginDialog";
@@ -21,6 +22,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { user, addFavorite, removeFavorite, isAuthenticated } = useAuth();
+  const { cartItems } = useCart();
   const [imgLoaded, setImgLoaded] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -32,6 +34,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const showDiscountBadge = isOnSale(product) && discountPercentage;
   const { formattedPrice, hasDiscount, formattedOriginalPrice } =
     formatPriceWithDiscount(product.originalPrice, product.discountedPrice);
+
+  // Check if product is in cart and get quantity
+  const cartItem = cartItems.find((item) => item.product.id === product.id);
+  const quantityInCart = cartItem?.quantity || 0;
+  const isInCart = quantityInCart > 0;
 
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -91,6 +98,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 {discountPercentage}% Off
               </Badge>
             )}
+            {isInCart && (
+              <Badge className="bg-green-600 text-white text-xs py-0 px-1.5 flex items-center gap-1">
+                <ShoppingCart size={10} />
+                {quantityInCart}
+              </Badge>
+            )}
           </div>
 
           {/* Wishlist button */}
@@ -127,11 +140,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
             )}
           </div>
 
-          {/* View Details button - Changed to always be ethnic-purple */}
+          {/* Enhanced View Details button with cart state */}
           <div className="mt-2">
             <Link to={`/product/${product.id}`}>
-              <Button className="w-full text-xs md:text-sm py-1 md:py-2 px-2 md:px-4 h-auto bg-ethnic-purple text-white hover:bg-ethnic-purple/90 transition-colors">
-                View Details
+              <Button
+                className={`w-full text-xs md:text-sm py-1 md:py-2 px-2 md:px-4 h-auto transition-all duration-200 ${
+                  isInCart
+                    ? "bg-green-600 text-white hover:bg-green-700 border-green-600"
+                    : "bg-ethnic-purple text-white hover:bg-ethnic-purple/90"
+                }`}
+              >
+                {isInCart ? (
+                  <div className="flex items-center justify-center gap-1">
+                    <ShoppingCart size={14} />
+                    <span>In Cart ({quantityInCart})</span>
+                  </div>
+                ) : (
+                  "View Details"
+                )}
               </Button>
             </Link>
           </div>
