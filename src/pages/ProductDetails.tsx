@@ -291,14 +291,14 @@ const ProductDetails = () => {
           <span className="text-foreground truncate">{product.name}</span>
         </nav>
 
-        {/* Product details - mobile optimized layout */}
-        <div className="flex flex-col xl:grid xl:grid-cols-2 xl:gap-16">
-          {/* Product media */}
-          <div className="mb-8 xl:mb-0">
-            {/* Main media display */}
+        {/* Product details - Responsive layout: mobile-friendly, desktop-elegant */}
+        <div className="flex flex-col xl:grid xl:grid-cols-3 xl:gap-12 xl:items-start">
+          {/* Product media - Full width on mobile, 2 columns on desktop */}
+          <div className="mb-8 xl:mb-0 xl:col-span-2">
+            {/* Main media display - Large on mobile, optimized on desktop */}
             <div className="relative group">
-              {/* Uniform container for both images and videos */}
-              <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden shadow-lg h-[500px] md:h-[600px] flex items-center justify-center">
+              {/* Responsive container: fixed height on mobile, aspect ratio on desktop */}
+              <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden shadow-lg h-[500px] md:h-[600px] xl:aspect-[4/3] xl:h-auto flex items-center justify-center">
                 {productMedia[selectedImage]?.type === "Video" ? (
                   /* Custom Instagram-style video player */
                   <div className="relative instagram-video w-full h-full flex items-center justify-center">
@@ -460,158 +460,164 @@ const ProductDetails = () => {
             )}
           </div>
 
-          {/* Product info */}
-          <div className="flex flex-col">
-            {/* Badges */}
-            <div className="flex space-x-2 mb-2">
-              {showNewBadge && (
-                <Badge className="bg-ethnic-purple text-white">New</Badge>
-              )}
-              {showDiscountBadge && (
-                <Badge className="bg-ethnic-gold text-foreground">
-                  {discountPercentage}% Off
-                </Badge>
-              )}
-              {product.isFeatured && <Badge variant="outline">Featured</Badge>}
-            </div>
+          {/* Product info - Compact on mobile, sticky on desktop */}
+          <div className="xl:col-span-1">
+            <div className="xl:sticky xl:top-8 space-y-6">
+              {/* Badges */}
+              <div className="flex flex-wrap gap-2">
+                {showNewBadge && <Badge className="badge-new">New</Badge>}
+                {showDiscountBadge && (
+                  <Badge className="badge-discount">
+                    {discountPercentage}% Off
+                  </Badge>
+                )}
+                {product.isFeatured && (
+                  <Badge className="badge-featured">Featured</Badge>
+                )}
+              </div>
 
-            {/* Product title */}
-            <h1 className="font-serif text-2xl md:text-3xl mb-2">
-              {product.name}
-            </h1>
+              {/* Product title */}
+              <div>
+                <h1 className="font-serif text-2xl md:text-3xl mb-3 leading-tight">
+                  {product.name}
+                </h1>
 
-            {/* Category and Rating */}
-            <div className="flex items-center space-x-4 mb-4">
-              <span className="text-muted-foreground">
-                {product.categoryName} • {product.sizeName}
-              </span>
-            </div>
+                {/* Category and Rating */}
+                <div className="flex items-center text-muted-foreground mb-4">
+                  <span>
+                    {product.categoryName} • {product.sizeName}
+                  </span>
+                </div>
 
-            {/* Price */}
-            <div className="flex items-center space-x-3 mb-4">
-              <span className="text-2xl md:text-3xl font-bold text-ethnic-purple">
-                {formatPrice(currentPrice)}
-              </span>
-              {product.discountedPrice && (
-                <span className="text-lg text-muted-foreground line-through">
-                  {formatPrice(product.originalPrice)}
-                </span>
-              )}
-            </div>
+                {/* Price */}
+                <div className="flex items-center space-x-3 mb-4">
+                  <span className="text-2xl md:text-3xl font-bold text-ethnic-purple">
+                    {formatPrice(currentPrice)}
+                  </span>
+                  {product.discountedPrice && (
+                    <span className="text-lg text-muted-foreground line-through">
+                      {formatPrice(product.originalPrice)}
+                    </span>
+                  )}
+                </div>
+              </div>
 
-            {/* Description */}
-            <div className="mb-6">
-              <p className="text-muted-foreground leading-relaxed">
-                {product.description}
-              </p>
-            </div>
+              {/* Description */}
+              <div className="prose prose-gray max-w-none">
+                <p className="text-muted-foreground leading-relaxed">
+                  {product.description}
+                </p>
+              </div>
 
-            {/* Enhanced Cart Controls */}
-            <div className="flex flex-col gap-4 mt-auto">
-              {isInCart ? (
-                /* Quantity Controls when item is in cart */
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-ethnic-purple/5 rounded-lg border border-ethnic-purple/20">
-                    <div className="flex items-center space-x-3">
-                      <ShoppingCart size={20} className="text-ethnic-purple" />
-                      <span className="font-medium text-ethnic-purple">
-                        In Cart
-                      </span>
+              {/* Enhanced Cart Controls */}
+              <div className="space-y-4">
+                {isInCart ? (
+                  /* Quantity Controls when item is in cart */
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 bg-ethnic-purple/5 rounded-xl border border-ethnic-purple/20">
+                      <div className="flex items-center space-x-3">
+                        <ShoppingCart
+                          size={20}
+                          className="text-ethnic-purple"
+                        />
+                        <span className="font-medium text-ethnic-purple">
+                          In Cart
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 border-ethnic-purple text-ethnic-purple hover:bg-ethnic-purple hover:text-white"
+                          onClick={() =>
+                            handleUpdateQuantity(currentQuantityInCart - 1)
+                          }
+                          disabled={cartActionLoading || cartLoading}
+                        >
+                          <Minus size={14} />
+                        </Button>
+                        <span className="font-semibold text-ethnic-purple min-w-[2rem] text-center">
+                          {currentQuantityInCart}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 border-ethnic-purple text-ethnic-purple hover:bg-ethnic-purple hover:text-white"
+                          onClick={() =>
+                            handleUpdateQuantity(currentQuantityInCart + 1)
+                          }
+                          disabled={cartActionLoading || cartLoading}
+                        >
+                          <Plus size={14} />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 border-ethnic-purple text-ethnic-purple hover:bg-ethnic-purple hover:text-white"
-                        onClick={() =>
-                          handleUpdateQuantity(currentQuantityInCart - 1)
-                        }
-                        disabled={cartActionLoading || cartLoading}
-                      >
-                        <Minus size={14} />
-                      </Button>
-                      <span className="font-semibold text-ethnic-purple min-w-[2rem] text-center">
-                        {currentQuantityInCart}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 border-ethnic-purple text-ethnic-purple hover:bg-ethnic-purple hover:text-white"
-                        onClick={() =>
-                          handleUpdateQuantity(currentQuantityInCart + 1)
-                        }
-                        disabled={cartActionLoading || cartLoading}
-                      >
-                        <Plus size={14} />
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => navigate("/cart")}
+                      className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90 ethnic-button"
+                      size="lg"
+                    >
+                      <ShoppingCart size={18} className="mr-2" />
+                      View Cart
+                    </Button>
                   </div>
+                ) : (
+                  /* Add to Cart button when item is not in cart */
                   <Button
-                    onClick={() => navigate("/cart")}
-                    className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90"
+                    onClick={handleAddToCart}
+                    disabled={cartActionLoading || cartLoading}
+                    className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90 transition-all duration-200 ethnic-button"
                     size="lg"
                   >
-                    <ShoppingCart size={18} className="mr-2" />
-                    View Cart
+                    {cartActionLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Adding to Cart...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <ShoppingCart size={18} />
+                        <span>Add to Cart</span>
+                      </div>
+                    )}
                   </Button>
-                </div>
-              ) : (
-                /* Add to Cart button when item is not in cart */
+                )}
+
+                {/* Wishlist Button */}
                 <Button
-                  onClick={handleAddToCart}
-                  disabled={cartActionLoading || cartLoading}
-                  className="w-full bg-ethnic-purple hover:bg-ethnic-purple/90 transition-all duration-200"
+                  onClick={handleWishlistToggle}
+                  disabled={wishlistLoading}
+                  variant="outline"
                   size="lg"
-                >
-                  {cartActionLoading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Adding to Cart...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <ShoppingCart size={18} />
-                      <span>Add to Cart</span>
-                    </div>
-                  )}
-                </Button>
-              )}
-
-              {/* Wishlist Button */}
-              <Button
-                onClick={handleWishlistToggle}
-                disabled={wishlistLoading}
-                variant="outline"
-                size="lg"
-                className={`w-full border-ethnic-purple transition-all duration-200 ${
-                  isInFavorites
-                    ? "bg-ethnic-purple/10 text-ethnic-purple"
-                    : "text-ethnic-purple hover:bg-ethnic-purple/10"
-                }`}
-              >
-                <Heart
-                  size={18}
-                  className={`mr-2 transition-all duration-200 ${
-                    isInFavorites ? "fill-ethnic-purple scale-110" : ""
+                  className={`w-full border-ethnic-purple transition-all duration-200 ethnic-button ${
+                    isInFavorites
+                      ? "bg-ethnic-purple/10 text-ethnic-purple"
+                      : "text-ethnic-purple hover:bg-ethnic-purple/10"
                   }`}
-                />
-                {wishlistLoading
-                  ? "Updating..."
-                  : isInFavorites
-                  ? "In Wishlist"
-                  : "Add to Wishlist"}
-              </Button>
-            </div>
+                >
+                  <Heart
+                    size={18}
+                    className={`mr-2 transition-all duration-200 ${
+                      isInFavorites ? "fill-ethnic-purple scale-110" : ""
+                    }`}
+                  />
+                  {wishlistLoading
+                    ? "Updating..."
+                    : isInFavorites
+                    ? "In Wishlist"
+                    : "Add to Wishlist"}
+                </Button>
 
-            {/* Share button */}
-            <ShareButton
-              url={window.location.href}
-              title={product.name}
-              description={`${formatPrice(
-                currentPrice
-              )} - ${product.description?.slice(0, 100)}...`}
-              className="mt-4"
-            />
+                {/* Share button */}
+                <ShareButton
+                  url={window.location.href}
+                  title={product.name}
+                  description={`${formatPrice(
+                    currentPrice
+                  )} - ${product.description?.slice(0, 100)}...`}
+                />
+              </div>
+            </div>
           </div>
         </div>
         {/* Similar products */}

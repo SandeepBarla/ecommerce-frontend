@@ -6,35 +6,67 @@
 
 @layer base {
   :root {
-    --background: 35 30% 96%;
-    --foreground: 274 30% 18%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 274 30% 18%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 274 30% 18%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 270 80% 75%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 45 76% 52%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
 
-    --muted: 35 30% 92%;
-    --muted-foreground: 274 10% 40%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 45 76% 52%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 275 20% 85%;
-    --input: 275 20% 85%;
-    --ring: 270 80% 75%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -71,7 +103,11 @@
   }
 
   .ethnic-card {
-    @apply bg-white border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200;
+    @apply bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100;
+  }
+
+  .ethnic-card:hover {
+    @apply scale-[1.02] shadow-xl;
   }
 
   .ethnic-input {
@@ -151,12 +187,12 @@
 
   /* Elegant thumbnail hover effects */
   .media-thumbnail {
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .media-thumbnail:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 25px -5px rgba(155, 135, 245, 0.3);
   }
 
   /* Uniform media container */
@@ -181,22 +217,26 @@
   }
 
   /* Custom scrollbar for thumbnail gallery */
+  .elegant-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #9b87f5 transparent;
+  }
+
   .elegant-scrollbar::-webkit-scrollbar {
     height: 4px;
   }
 
   .elegant-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 2px;
+    background: transparent;
   }
 
   .elegant-scrollbar::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
+    background: #9b87f5;
     border-radius: 2px;
   }
 
   .elegant-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: #8b77e5;
   }
 
   /* Hero Carousel Animations */
@@ -244,5 +284,60 @@
 
   .delay-1000 {
     animation-delay: 1000ms;
+  }
+
+  /* Product info sticky behavior enhancement */
+  @media (min-width: 1280px) {
+    .product-info-sticky {
+      position: sticky;
+      top: 2rem;
+      max-height: calc(100vh - 4rem);
+      overflow-y: auto;
+    }
+  }
+
+  /* Enhanced button animations */
+  .ethnic-button {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .ethnic-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px -5px rgba(155, 135, 245, 0.4);
+  }
+
+  /* Product media container enhancements */
+  .product-media-container {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  }
+
+  .product-media-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+      circle at 30% 20%,
+      rgba(155, 135, 245, 0.05) 0%,
+      transparent 50%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Badge enhancements */
+  .badge-new {
+    @apply bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md;
+  }
+
+  .badge-discount {
+    @apply bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-md;
+  }
+
+  .badge-featured {
+    @apply border-purple-200 text-purple-700 bg-purple-50;
   }
 }
