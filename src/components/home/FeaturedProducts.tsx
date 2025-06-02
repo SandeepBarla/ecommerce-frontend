@@ -341,14 +341,14 @@ const FeaturedProducts = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Navigation Arrows - Enhanced responsive visibility */}
+          {/* Navigation Arrows - Show side arrows on iPad and desktop */}
           {showNavigation && (
             <>
-              {/* Desktop Navigation - Show on larger screens */}
+              {/* Desktop & iPad Navigation - Show on medium screens and up */}
               <button
                 onClick={scrollLeft}
                 disabled={!canScrollLeft}
-                className={`hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
+                className={`hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
                   canScrollLeft
                     ? "text-ethnic-purple border-ethnic-purple/20 hover:bg-ethnic-purple hover:text-white hover:border-ethnic-purple opacity-0 hover:opacity-100 group-hover:opacity-100"
                     : "opacity-0 cursor-not-allowed"
@@ -360,7 +360,7 @@ const FeaturedProducts = ({
               <button
                 onClick={scrollRight}
                 disabled={!canScrollRight}
-                className={`hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
+                className={`hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 border transition-all duration-300 ${
                   canScrollRight
                     ? "text-ethnic-purple border-ethnic-purple/20 hover:bg-ethnic-purple hover:text-white hover:border-ethnic-purple opacity-0 hover:opacity-100 group-hover:opacity-100"
                     : "opacity-0 cursor-not-allowed"
@@ -370,8 +370,8 @@ const FeaturedProducts = ({
                 <ChevronRight size={18} />
               </button>
 
-              {/* Mobile & Tablet Navigation - Show on smaller screens */}
-              <div className="lg:hidden absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
+              {/* Mobile Navigation - Show only on mobile screens */}
+              <div className="md:hidden absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
                 <button
                   onClick={scrollLeft}
                   disabled={!canScrollLeft}
