@@ -71,7 +71,7 @@ const ProductForm = ({
     originalPrice: initialData?.originalPrice || undefined,
     discountedPrice: initialData?.discountedPrice || undefined,
     categoryId: initialData?.categoryId || 1,
-    sizeId: initialData?.sizeId || 1,
+    sizeId: initialData?.sizeId || undefined, // Will be set when sizes load
     isFeatured: initialData?.isFeatured || false,
     newUntil: initialData?.newUntil || undefined,
   });
@@ -115,6 +115,18 @@ const ProductForm = ({
           : undefined,
     }));
   }, [newUntilDate, isNewUntilEnabled]);
+
+  // Set default sizeId to the first size (by sortOrder) when sizes load and no initial data
+  useEffect(() => {
+    if (sizes.length > 0 && !initialData?.sizeId && !formData.sizeId) {
+      const sortedSizes = sizes.sort((a, b) => a.sortOrder - b.sortOrder);
+      const defaultSize = sortedSizes[0];
+      setFormData((prev) => ({
+        ...prev,
+        sizeId: defaultSize.id,
+      }));
+    }
+  }, [sizes, initialData?.sizeId, formData.sizeId]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
